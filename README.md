@@ -22,11 +22,13 @@ Pour ce faire, nous devons mettre en œuvre chaque couche séparément.
 
 ### Ce que chaque couche devrait implémenter
 Toutes les couches que nous pouvons créer, **fully connected** (entièrement connectées), **convolutional** (convolutionnelles), maxpooling, dropout, etc., ont au moins deux choses en commun : des données d'entrée(**input**) et de sortie(**output**).
-$$X \to Couche \to Y$$
+$$X \to \fbox{Couche} \to Y$$
 
 ### Propagation vers l'avant (Forward propagation)
 Nous pouvons déjà souligner un point important, à savoir que la sortie d'une couche est l'entrée de la couche suivante.
-$$X \to Couche\~1 \to Couche\~2 \to Couche\~3 \to Y\~E$$
+
+$$X \to \fbox{Couche\~1} \to \fbox{Couche\~2} \to \fbox{Couche\~3} \to Y\~E$$
+
 C'est ce qu'on appelle la propagation vers l'avant(**Forward propagation**).
 Essentiellement, nous donnons les données d'entrée à la première couche, puis la sortie de chaque couche devient l'entrée de la couche suivante jusqu'à ce que nous atteignions la fin du réseau.
 En comparant le résultat du réseau (Y) avec la sortie souhaitée (disons Y*), nous pouvons calculer une erreur E.
@@ -40,3 +42,9 @@ $$w\leftarrow w - \alpha\frac{\partial E}{\partial w}$$
 Où **$\alpha$** est un paramètre dans l'intervalle [0,1] que nous fixons et qui est appelé le taux d'apprentissage(**learning rate**).
 Quoi qu'il en soit, l'élément important ici est **$\frac{\partial E}{\partial w}$** (la dérivée de E par rapport à w).
 **Nous devons être capables de trouver la valeur de cette expression pour n'importe quel paramètre du réseau, quelle que soit son architecture.**
+
+### Propagation vers l'arrière (Backward propagation)
+Supposons que nous donnions à une couche **la dérivée de l'erreur par rapport à sa sortie** $(\frac{\partial E}{\partial Y})$, alors elle doit être capable de fournir **la dérivée de l'erreur par rapport à son entrée** $(\frac{\partial E}{\partial X})$.
+
+$$\frac{\partial E}{\partial X} \leftarrow \fbox{Couche} \leftarrow \frac{\partial E}{\partial Y}$$
+Rappelez-vous que E est un **scalaire** (un nombre) et que X et Y sont des **matrices**.
