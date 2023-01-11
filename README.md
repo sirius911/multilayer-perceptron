@@ -22,12 +22,13 @@ Pour ce faire, nous devons mettre en œuvre chaque couche séparément.
 
 ### Ce que chaque couche devrait implémenter
 Toutes les couches que nous pouvons créer, **fully connected** (entièrement connectées), **convolutional** (convolutionnelles), maxpooling, dropout, etc., ont au moins deux choses en commun : des données d'entrée(**input**) et de sortie(**output**).
-$$X \to \fbox{Couche} \to Y$$
+
+### $$X \to \fbox{Couche} \to Y$$
 
 ### Propagation vers l'avant (Forward propagation)
 Nous pouvons déjà souligner un point important, à savoir que la sortie d'une couche est l'entrée de la couche suivante.
 
-$$X \to \fbox{Couche\~1} \to \fbox{Couche\~2} \to \fbox{Couche\~3} \to Y\~E$$
+### $$X \to \fbox{Couche\~1} \to \fbox{Couche\~2} \to \fbox{Couche\~3} \to Y\~E$$
 
 C'est ce qu'on appelle la propagation vers l'avant(**Forward propagation**).
 Essentiellement, nous donnons les données d'entrée à la première couche, puis la sortie de chaque couche devient l'entrée de la couche suivante jusqu'à ce que nous atteignions la fin du réseau.
@@ -46,5 +47,48 @@ Quoi qu'il en soit, l'élément important ici est **$\frac{\partial E}{\partial 
 ### Propagation vers l'arrière (Backward propagation)
 Supposons que nous donnions à une couche **la dérivée de l'erreur par rapport à sa sortie** $(\frac{\partial E}{\partial Y})$, alors elle doit être capable de fournir **la dérivée de l'erreur par rapport à son entrée** $(\frac{\partial E}{\partial X})$.
 
-$$\frac{\partial E}{\partial X} \leftarrow \fbox{Couche} \leftarrow \frac{\partial E}{\partial Y}$$
+### $$\frac{\partial E}{\partial X} \leftarrow \fbox{Couche} \leftarrow \frac{\partial E}{\partial Y}$$
 Rappelez-vous que E est un **scalaire** (un nombre) et que X et Y sont des **matrices**.
+
+### $$\frac{\partial E}{\partial X} = [\frac{\partial E}{\partial x_1} \~ \frac{\partial E}{\partial x_2} \~ ... \~ \frac{\partial E}{\partial x_i}]$$
+
+### $$\frac{\partial E}{\partial Y} = [\frac{\partial E}{\partial y_1} \~ \frac{\partial E}{\partial y_2} \~ ... \~ \frac{\partial E}{\partial y_i}]$$
+
+Oublions $\frac{\partial E}{\partial X}$ pour l'instant. L'astuce ici, est que si nous avons accès à $\frac{\partial E}{\partial Y}$ nous pouvons très facilement calculer $\frac{\partial E}{\partial W}$ (si la couche a des paramètres entraînables) sans rien savoir de l'architecture du réseau ! Nous utilisons simplement la règle de la chaîne :
+
+### $$\frac{\partial E}{\partial w} = \sum_j\frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial w}$$
+
+L'inconnue est $\frac{\partial y_j}{\partial w}$ qui dépend totalement de la façon dont la couche calcule sa sortie. Donc si chaque couche a accès à $\frac{\partial E}{\partial Y}$, où Y est sa propre sortie, alors nous pouvons mettre à jour nos paramètres !
+
+### Mais pourquoi $\frac{\partial E}{\partial X}$ ?
+N'oubliez pas que la sortie d'une couche est l'entrée de la couche suivante. Ce qui signifie que $\frac{\partial E}{\partial X}$ pour une couche est $\frac{\partial E}{\partial Y}$ pour la couche précédente ! Voilà, c'est tout ! C'est juste une façon astucieuse de propager l'erreur ! Encore une fois, nous pouvons utiliser la règle de la chaîne :
+
+### $$\frac{\partial E}{\partial x_i} = \sum_j\frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial x_i}$$
+
+C'est très important, c'est la *clé* pour comprendre la rétro-propagation ! Après cela, nous serons capables de coder un réseau de neurones convolutifs profonds en un rien de temps !
+
+### Diagramme pour comprendre la rétro-propagation
+C'est ce que j'ai décrit précédemment. La couche 3 (layer 3) va mettre à jour ses paramètres en utilisant $\frac{\partial E}{\partial Y}$, et va ensuite transmettre $\frac{\partial E}{\partial H_2}$ à la couche précédente, qui est son propre "∂E/∂Y". La couche 2 (layer 2) va ensuite faire de même, et ainsi de suite.
+
+![graph](https://user-images.githubusercontent.com/25301163/211849486-686db912-e2ba-4843-8e82-655ca5e5980b.jpg)
+
+Cela peut sembler abstrait ici, mais cela deviendra très clair lorsque nous l'appliquerons à un type de couche spécifique. En parlant d'abstrait, c'est le bon moment pour écrire notre première classe python.
+
+### Classe de base abstraite : Layer
+La classe abstraite Layer, dont toutes les autres couches hériteront, gère des propriétés simples qui sont une entrée (**input**), une sortie (**output**), et des méthodes avant (**forward**) et arrière (**backward**).
+
+```
+# Base class
+class Layer:
+    def __init__(self):
+        self.input = None
+        self.output = None
+
+    # computes the output Y of a layer for a given input X
+    def forward_propagation(self, input):
+        raise NotImplementedError
+
+    # computes dE/dX for a given dE/dY (and update parameters if any)
+    def backward_propagation(self, output_error, learning_rate):
+        raise NotImplementedError
+```
