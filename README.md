@@ -304,3 +304,90 @@ def tanh_prime(x):
 Jusqu'à présent, pour une couche donnée, nous supposions que $\frac{\partial E}{\partial Y}$ était donnée (par la couche suivante). Mais que se passe-t-il pour la dernière couche ? Comment obtient-elle $\frac{\partial E}{\partial Y}$ ? Nous le donnons simplement manuellement, et cela dépend de la façon dont nous définissons l'erreur.
 
 C'est vous qui définissez l'erreur du réseau, qui mesure la qualité ou la faiblesse du réseau pour des données d'entrée données. Il existe de nombreuses façons de définir l'erreur, et l'une des plus connues est appelée **MSE (Mean Squared Error)**.
+
+## $$E=\frac{1}{n}\sum_{i}^n(\bar{y}_i - y_i)^2$$
+
+Où $\bar{y}$ et $y$ désignent respectivement la sortie souhaitée et la sortie réelle. On peut considérer la perte comme une dernière couche qui prend tous les neurones de sortie et les écrase en un seul neurone. Ce dont nous avons besoin maintenant, comme pour toutes les autres couches, c'est de définir $\frac{\partial E}{\partial Y}$. Sauf que maintenant, nous avons finalement atteint E !
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial Y}&=[\frac{\partial E}{\partial y_1} \cdots \frac{\partial E}{\partial y_i}]\\
+&= \frac{2}{n}[y_1 - \bar{y}_1 \cdots y_i - \bar{y}_i]\\
+&= \frac{2}{n}(Y - \bar{Y})\\
+\end{aligned}
+$$
+
+Il s'agit simplement de deux fonctions python que vous pouvez placer dans un fichier séparé. Elles seront utilisées lors de la création du réseau.
+```python
+import numpy as np
+
+# loss function and its derivative
+def mse(y_true, y_pred):
+    return np.mean(np.power(y_true-y_pred, 2));
+
+def mse_prime(y_true, y_pred):
+    return 2*(y_pred-y_true)/y_true.size;
+```
+
+### Classe réseau
+C'est presque terminé ! Nous allons créer une classe Network pour créer des réseaux de neurones très facilement comme dans la première image !
+
+J'ai commenté presque chaque partie du code, cela ne devrait pas être trop compliqué à comprendre si vous avez compris les étapes précédentes. Néanmoins, laissez un commentaire si vous avez des questions, je me ferai un plaisir d'y répondre !
+```python
+class Network:
+    def __init__(self):
+        self.layers = []
+        self.loss = None
+        self.loss_prime = None
+
+    # add layer to network
+    def add(self, layer):
+        self.layers.append(layer)
+
+    # set loss to use
+    def use(self, loss, loss_prime):
+        self.loss = loss
+        self.loss_prime = loss_prime
+
+    # predict output for given input
+    def predict(self, input_data):
+        # sample dimension first
+        samples = len(input_data)
+        result = []
+
+        # run network over all samples
+        for i in range(samples):
+            # forward propagation
+            output = input_data[i]
+            for layer in self.layers:
+                output = layer.forward_propagation(output)
+            result.append(output)
+
+        return result
+
+    # train the network
+    def fit(self, x_train, y_train, epochs, learning_rate):
+        # sample dimension first
+        samples = len(x_train)
+
+        # training loop
+        for i in range(epochs):
+            err = 0
+            for j in range(samples):
+                # forward propagation
+                output = x_train[j]
+                for layer in self.layers:
+                    output = layer.forward_propagation(output)
+
+                # compute loss (for display purpose only)
+                err += self.loss(y_train[j], output)
+
+                # backward propagation
+                error = self.loss_prime(y_train[j], output)
+                for layer in reversed(self.layers):
+                    error = layer.backward_propagation(error, learning_rate)
+
+            # calculate average error on all samples
+            err /= samples
+            print('epoch %d/%d   error=%f' % (i+1, epochs, err))
+```
