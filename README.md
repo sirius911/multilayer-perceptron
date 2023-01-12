@@ -77,7 +77,7 @@ Cela peut sembler abstrait ici, mais cela deviendra très clair lorsque nous l'a
 ### Classe de base abstraite : Layer
 La classe abstraite Layer, dont toutes les autres couches hériteront, gère des propriétés simples qui sont une entrée (**input**), une sortie (**output**), et des méthodes avant (**forward**) et arrière (**backward**).
 
-```
+```python
 # Base class
 class Layer:
     def __init__(self):
@@ -92,3 +92,9 @@ class Layer:
     def backward_propagation(self, output_error, learning_rate):
         raise NotImplementedError
 ```
+background-color:yellow
+Comme vous pouvez le voir, il y a un paramètre supplémentaire dans **backward_propagation**, que je n'ai pas mentionné, c'est le **learning_rate**. Ce paramètre devrait être quelque chose comme une politique de mise à jour, ou un optimiseur comme ils l'appellent dans *Keras*, mais pour des raisons de simplicité, nous allons simplement passer un taux d'apprentissage et mettre à jour nos paramètres en utilisant la descente de gradient.
+
+### Couche entièrement connectée (Fully Connected Layer)
+Définissons et implémentons maintenant le premier type de couche : la couche entièrement connectée ou couche FC (**F**ully **C**onnected). Les couches FC sont les couches les plus basiques car chaque neurone d'entrée est connecté à chaque neurone de sortie.
+
