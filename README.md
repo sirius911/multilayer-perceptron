@@ -430,4 +430,21 @@ Je ne pense pas avoir besoin d'insister sur beaucoup de choses. Faites juste att
 
 ### Résultat
 
+```shell
+$ python xor.py 
+epoch 1/1000 error=0.322980
+epoch 2/1000 error=0.311174
+epoch 3/1000 error=0.307195
+...
+epoch 998/1000 error=0.000243
+epoch 999/1000 error=0.000242
+epoch 1000/1000 error=0.000242
+[
+    array([[ 0.00077435]]),
+    array([[ 0.97760742]]),
+    array([[ 0.97847793]]),
+    array([[-0.00131305]])
+]
 ```
+
+Clairement, cela fonctionne, super ! Nous pouvons maintenant résoudre quelque chose de plus intéressant, résolvons MNIST !
