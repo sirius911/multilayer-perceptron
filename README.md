@@ -230,7 +230,7 @@ class FCLayer(Layer):
 ### Couche d'activation (Activation Layer)
 Tous les calculs que nous avons faits jusqu'à présent étaient complètement linéaires. Il est impossible d'apprendre quoi que ce soit avec ce type de modèle. Nous devons ajouter de la non-linéarité au modèle en appliquant des fonctions non linéaires à la sortie de certaines couches.
 
-Maintenant, nous devons refaire tout le processus pour ce nouveau type de couche !
+Maintenant, nous devons refaire tout le processus pour ce nouveau type de couche ! :joy:
 
 Pas d'inquiétude, ça va être beaucoup plus rapide car il n'y a pas de paramètres à apprendre. Nous avons juste besoin de calculer $\frac{\partial E}{\partial X}$.
 
@@ -390,4 +390,44 @@ class Network:
             # calculate average error on all samples
             err /= samples
             print('epoch %d/%d   error=%f' % (i+1, epochs, err))
+```
+
+### Construire des réseaux neuronaux
+Enfin ! Nous pouvons utiliser notre classe pour créer un réseau de neurones avec autant de couches que nous le souhaitons ! Nous allons construire deux réseaux neuronaux : un simple **XOR** et un solveur **MNIST**.
+
+### Résoudre XOR
+Il est toujours important de commencer avec XOR car c'est un moyen simple de savoir si le réseau apprend quelque chose.
+```python
+import numpy as np
+
+from network import Network
+from fc_layer import FCLayer
+from activation_layer import ActivationLayer
+from activations import tanh, tanh_prime
+from loss_functions import mse, mse_prime
+
+# training data
+x_train = np.array([[[0,0]], [[0,1]], [[1,0]], [[1,1]]])
+y_train = np.array([[[0]], [[1]], [[1]], [[0]]])
+
+# network
+net = Network()
+net.add(FCLayer(2, 3))
+net.add(ActivationLayer(tanh, tanh_prime))
+net.add(FCLayer(3, 1))
+net.add(ActivationLayer(tanh, tanh_prime))
+
+# train
+net.use(mse, mse_prime)
+net.fit(x_train, y_train, epochs=1000, learning_rate=0.1)
+
+# test
+out = net.predict(x_train)
+print(out)
+```
+
+Je ne pense pas avoir besoin d'insister sur beaucoup de choses. Faites juste attention aux données d'entraînement, vous devez toujours avoir la **dimension** de l'échantillon **en premier**. Par exemple ici, la forme d'entrée est **(4,1,2)**.
+
+### Résultat
+
 ```
