@@ -130,8 +130,99 @@ Calculons $\frac{\partial E}{\partial W}$. Cette matrice doit être de la même 
   <img src="https://user-images.githubusercontent.com/25301163/212091867-9ec4aad0-c618-48b8-a98e-3c3644b97448.jpg">
 </p>
 En utilisant la règle de la chaîne énoncée précédemment, nous pouvons écrire :
+
 $$
 \begin{aligned}
-\frac{\partial E}{\partial w_{ij}} = \frac{\partial E}{\partial y_1} \\
- = \frac{\partial E}{\partial y_j}x_i
+\frac{\partial E}{\partial w_{ij} }&=\frac{\partial E}{\partial y_1}\frac{\partial y_1}{\partial w_{ij} } + \cdots + \frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial w_{ij}}\\
+&= \frac{\partial E}{\partial y_j}x_i
 \end{aligned}
+$$
+
+Par conséquent,
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212097948-5f2697fe-b9fe-40cc-a123-2f03ec750a54.jpg">
+</p>
+
+Voilà, nous avons la première formule pour mettre à jour les poids ! Maintenant, nous allons calculer $\frac{\partial E}{\partial B}.
+
+### $$\frac{\partial E}{\partial B} = [ \frac{\partial E}{\partial b_1} \~ \frac{\partial E}{\partial b_2} + \cdots + \frac{\partial E}{\partial b_j} ]$$
+
+De nouveau, $\frac{\partial E}{\partial B}$ doit être de la même taille que B lui-même, un gradient par biais. Nous pouvons à nouveau utiliser la règle de la chaîne :
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial b_j}&=\frac{\partial E}{\partial y_1}\frac{\partial y_1}{\partial b_j} + \cdots + \frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial b_j}\\
+&= \frac{\partial E}{\partial y_j}
+\end{aligned}
+$$
+
+Et de conclure que,
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial B}&=\frac{\partial E}{\partial y_1} \~ \frac{\partial y_1}{\partial y_2} + \cdots + \frac{\partial E}{\partial y_j}\\
+&= \frac{\partial E}{\partial Y}
+\end{aligned}
+$$
+
+Maintenant que nous avons $\frac{\partial E}{\partial W}$ et $\frac{\partial E}{\partial B}$ , il nous reste $\frac{\partial E}{\partial X}$ qui est **très importante** car elle va "agir" comme $\frac{\partial E}{\partial Y}$ pour la couche qui la précède.
+
+### $$\frac{\partial E}{\partial X} = [\frac{\partial E}{\partial x_1} \~ \frac{\partial E}{\partial x_2} \cdots \frac{\partial E}{\partial x_i}]$$
+
+Encore une fois, en utilisant la règle de la chaîne,
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial x_i}&=\frac{\partial E}{\partial y_1}\frac{\partial y_1}{\partial x_i} + \cdots + \frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial x_i}\\
+&= \frac{\partial E}{\partial y_1} w_{i1} + \cdots + \frac{\partial E}{\partial y_j} w_{ij}
+\end{aligned}
+$$
+
+Finally, we can write the whole matrix :
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212103303-797e6c9d-1035-469f-85e9-e3b991fafe33.jpg">
+</p>
+
+Voilà, c'est fait ! Nous avons les trois formules dont nous avions besoin pour la couche FC !
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial X}&=\frac{\partial E}{\partial Y}W^t\\
+\frac{\partial E}{\partial W}&= X^t\frac{\partial E}{\partial Y}\\
+\frac{\partial E}{\partial B}&= \frac{\partial E}{\partial Y}
+\end{aligned}
+$$
+
+### Codage de la couche entièrement connectée (Fully Connected Layer)
+Nous pouvons maintenant écrire du code python pour donner vie à ces mathématiques !
+```python
+from layer import Layer
+import numpy as np
+
+# inherit from base class Layer
+class FCLayer(Layer):
+    # input_size = number of input neurons
+    # output_size = number of output neurons
+    def __init__(self, input_size, output_size):
+        self.weights = np.random.rand(input_size, output_size) - 0.5
+        self.bias = np.random.rand(1, output_size) - 0.5
+
+    # returns output for a given input
+    def forward_propagation(self, input_data):
+        self.input = input_data
+        self.output = np.dot(self.input, self.weights) + self.bias
+        return self.output
+
+    # computes dE/dW, dE/dB for a given output_error=dE/dY. Returns input_error=dE/dX.
+    def backward_propagation(self, output_error, learning_rate):
+        input_error = np.dot(output_error, self.weights.T)
+        weights_error = np.dot(self.input.T, output_error)
+        # dBias = output_error
+
+        # update parameters
+        self.weights -= learning_rate * weights_error
+        self.bias -= learning_rate * output_error
+        return input_error
+```
