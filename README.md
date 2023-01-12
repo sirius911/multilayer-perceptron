@@ -125,3 +125,13 @@ Comme nous l'avons dit, supposons que nous ayons une matrice contenant la dériv
 2. La dérivée de l'erreur par rapport à l'entrée ( $\frac{\partial E}{\partial X}$ )
 
 Calculons $\frac{\partial E}{\partial W}$. Cette matrice doit être de la même taille que W lui-même : ixj où i est le nombre de neurones d'entrée et j le nombre de neurones de sortie. Nous avons besoin d'un gradient pour chaque poids :
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212091867-9ec4aad0-c618-48b8-a98e-3c3644b97448.jpg">
+</p>
+En utilisant la règle de la chaîne énoncée précédemment, nous pouvons écrire :
+$$
+\begin{aligned}
+\frac{\partial E}{\partial w_{ij}} = \frac{\partial E}{\partial y_1} \\
+ = \frac{\partial E}{\partial y_j}x_i
+\end{aligned}
