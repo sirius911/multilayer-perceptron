@@ -226,3 +226,81 @@ class FCLayer(Layer):
         self.bias -= learning_rate * output_error
         return input_error
 ```
+
+### Couche d'activation (Activation Layer)
+Tous les calculs que nous avons faits jusqu'à présent étaient complètement linéaires. Il est impossible d'apprendre quoi que ce soit avec ce type de modèle. Nous devons ajouter de la non-linéarité au modèle en appliquant des fonctions non linéaires à la sortie de certaines couches.
+
+Maintenant, nous devons refaire tout le processus pour ce nouveau type de couche !
+
+Pas d'inquiétude, ça va être beaucoup plus rapide car il n'y a pas de paramètres à apprendre. Nous avons juste besoin de calculer $\frac{\partial E}{\partial X}$.
+
+Nous appellerons $f$ et $f'$ respectivement la fonction d'activation et sa dérivée.
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212106716-e3ad51b7-4c39-4a3d-b94b-16f5e275ff42.jpg">
+</p>
+
+### Propagation vers l'avant (Forward propagation)
+Comme vous le verrez, c'est assez simple. Pour une entrée X donnée, la sortie est simplement la fonction d'activation appliquée à chaque élément de X . Ce qui signifie que **l'entrée** et la **sortie** ont les **mêmes dimensions**.
+
+$$
+\begin{aligned}
+Y&=[f(x_1) \cdots f(x_i)]\\
+&= f(X)\\
+\end{aligned}
+$$
+
+### Propagation vers l'arrière (Backward propagation)
+Étant donné $\frac{\partial E}{\partial Y}$, nous voulons calculer $\frac{\partial E}{\partial X}$.
+
+$$
+\begin{aligned}
+\frac{\partial E}{\partial X}&=[\frac{\partial E}{\partial x_1} \cdots \frac{\partial E}{\partial x_i}]\\
+&= [\frac{\partial E}{\partial y_1}\frac{\partial y_1}{\partial x_1} \cdots \frac{\partial E}{\partial y_i}\frac{\partial y_i}{\partial x_i}]\\
+&= [\frac{\partial E}{\partial y_1}f'(x_1) \cdots \frac{E}{y_i}f'(x_i)]\\
+&= [\frac{\partial E}{\partial y_1} \cdots \frac{\partial E}{\partial y_i}] \odot [f'(x_1) \cdots f'(x_i)]\\
+&= \frac{\partial E}{\partial Y} \odot f'(X)
+\end{aligned}
+$$
+
+Attention, nous utilisons ici une multiplication **par éléments** entre les deux matrices (alors que dans les formules ci-dessus, il s'agissait d'un produit scalaire).
+
+### Codage de la couche d'activation (activation Layer)
+Le code de la couche d'activation est aussi simple.
+```python
+from layer import Layer
+
+# inherit from base class Layer
+class ActivationLayer(Layer):
+    def __init__(self, activation, activation_prime):
+        self.activation = activation
+        self.activation_prime = activation_prime
+
+    # returns the activated input
+    def forward_propagation(self, input_data):
+        self.input = input_data
+        self.output = self.activation(self.input)
+        return self.output
+
+    # Returns input_error=dE/dX for a given output_error=dE/dY.
+    # learning_rate is not used because there is no "learnable" parameters.
+    def backward_propagation(self, output_error, learning_rate):
+        return self.activation_prime(self.input) * output_error
+```
+Vous pouvez également écrire certaines fonctions d'activation et leurs dérivés dans un fichier séparé. Elles seront utilisées plus tard pour créer une couche d'activation.
+
+```python
+import numpy as np
+
+# activation function and its derivative
+def tanh(x):
+    return np.tanh(x);
+
+def tanh_prime(x):
+    return 1-np.tanh(x)**2;
+```
+
+### Fonction de perte (Loss Function)
+Jusqu'à présent, pour une couche donnée, nous supposions que $\frac{\partial E}{\partial Y}$ était donnée (par la couche suivante). Mais que se passe-t-il pour la dernière couche ? Comment obtient-elle $\frac{\partial E}{\partial Y}$ ? Nous le donnons simplement manuellement, et cela dépend de la façon dont nous définissons l'erreur.
+
+C'est vous qui définissez l'erreur du réseau, qui mesure la qualité ou la faiblesse du réseau pour des données d'entrée données. Il existe de nombreuses façons de définir l'erreur, et l'une des plus connues est appelée **MSE (Mean Squared Error)**.
