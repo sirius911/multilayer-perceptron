@@ -70,7 +70,9 @@ C'est très important, c'est la *clé* pour comprendre la rétro-propagation ! A
 ### Diagramme pour comprendre la rétro-propagation
 C'est ce que j'ai décrit précédemment. La couche 3 (layer 3) va mettre à jour ses paramètres en utilisant $\frac{\partial E}{\partial Y}$, et va ensuite transmettre $\frac{\partial E}{\partial H_2}$ à la couche précédente, qui est son propre "∂E/∂Y". La couche 2 (layer 2) va ensuite faire de même, et ainsi de suite.
 
-![graph](https://user-images.githubusercontent.com/25301163/211849486-686db912-e2ba-4843-8e82-655ca5e5980b.jpg)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/211849486-686db912-e2ba-4843-8e82-655ca5e5980b.jpg">
+</p>
 
 Cela peut sembler abstrait ici, mais cela deviendra très clair lorsque nous l'appliquerons à un type de couche spécifique. En parlant d'abstrait, c'est le bon moment pour écrire notre première classe python.
 
@@ -97,4 +99,29 @@ Comme vous pouvez le voir, il y a un paramètre supplémentaire dans **backward_
 
 ### Couche entièrement connectée (Fully Connected Layer)
 Définissons et implémentons maintenant le premier type de couche : la couche entièrement connectée ou couche FC (**F**ully **C**onnected). Les couches FC sont les couches les plus basiques car chaque neurone d'entrée est connecté à chaque neurone de sortie.
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212079310-d5f62246-3c79-41af-a023-e15c25d0f0e7.jpg">
+</p>
 
+### Propagation vers l'avant (Forward Propagation)
+La valeur de chaque neurone de sortie peut être calculée comme suit :
+
+### $$y_j = b_j + \sum_i x_iw_{ij}$$
+
+Avec les matrices, nous pouvons calculer cette formule pour chaque neurone de sortie en une seule fois en utilisant un produit scalaire (**dot product**):
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/25301163/212083330-dc84ea78-2a30-4a57-994d-b64c68c15f1d.jpg">
+</p>
+
+## $$Y = XW + B$$
+
+Nous avons fini avec la passe avant (Forward Propagation). Maintenant, faisons la passe arrière (backward) de la couche FC.
+*Notez que je n'utilise pas encore de fonction d'activation, c'est parce que nous allons l'implémenter dans une couche séparée !*
+
+### Propagation vers l'arrière (Backward Propagation)
+Comme nous l'avons dit, supposons que nous ayons une matrice contenant la dérivée de l'erreur par rapport à la sortie de cette couche $\frac{\partial E}{\partial Y}$. Nous avons besoin de :
+1. La dérivée de l'erreur par rapport aux paramètres ( $\frac{\partial E}{\partial W}$, $\frac{\partial E}{\partial B}$ )
+2. La dérivée de l'erreur par rapport à l'entrée ( $\frac{\partial E}{\partial X}$ )
+
+Calculons $\frac{\partial E}{\partial W}$. Cette matrice doit être de la même taille que W lui-même : ixj où i est le nombre de neurones d'entrée et j le nombre de neurones de sortie. Nous avons besoin d'un gradient pour chaque poids :
