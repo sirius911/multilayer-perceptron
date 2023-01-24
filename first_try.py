@@ -5,7 +5,7 @@ from srcs.utils_ml import data_spliter
 from srcs.network import Network
 from srcs.fc_layer import FCLayer
 from srcs.activation_layer import ActivationLayer
-from srcs.activations import tanh, tanh_prime, sigmoid, sigmoid_prime
+from srcs.activations import tanh, tanh_prime, sigmoid, sigmoid_prime, softmax, softmax_prime, relu, relu_prime
 from srcs.loss_functions import mse, mse_prime
 from srcs.metrics import f1_score_
 
@@ -47,12 +47,20 @@ y_test = to_categorical(y_test, ['M', 'B'])
 
 #network
 net = Network()
-net.add(FCLayer(nb_input, 100))
+# net.add(FCLayer(nb_input, 100))
+# net.add(ActivationLayer(tanh, tanh_prime))
+# net.add(FCLayer(100, 50))
+# net.add(ActivationLayer(tanh, tanh_prime))
+# net.add(FCLayer(50, 2))
+# net.add(ActivationLayer(sigmoid, sigmoid_prime))
+net.add(FCLayer(nb_input, 16))
+net.add(ActivationLayer(relu, relu_prime))
+net.add(FCLayer(16, 32))
 net.add(ActivationLayer(tanh, tanh_prime))
-net.add(FCLayer(100, 50))
-net.add(ActivationLayer(tanh, tanh_prime))
-net.add(FCLayer(50, 2))
-net.add(ActivationLayer(sigmoid, sigmoid_prime))
+net.add(FCLayer(32, 16))
+net.add(ActivationLayer(relu, relu_prime))
+net.add(FCLayer(16, 2))
+net.add(ActivationLayer(softmax, softmax_prime))
 
 net.use(mse, mse_prime)
 print("training ...")
@@ -76,6 +84,6 @@ good = 0
 for o,t in zip(out, y_test):
     if np.argmax(o) == np.argmax(t):
         good += 1
-print(f"good = {good} ==> {good / len(y_test) * 100:.2f}%")
+print(f"Succes = {good / len(y_test) * 100:.2f}%\t err = {100 - (good / len(y_test) * 100):.2f}%")
 y_hat = category_to_bool(np.array(out).reshape(len(out),2))
-print(f"f1_score = {f1_score_(category_to_bool(y_test), y_hat):0.2f}")
+print(f"f1_score = {f1_score_(category_to_bool(y_test), y_hat):0.2f}%")
