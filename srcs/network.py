@@ -1,3 +1,27 @@
+from tqdm import tqdm
+import numpy as np
+from srcs.metrics import f1_score_
+
+def category_to_bool(arr:np.ndarray):
+    res = np.zeros(len(arr))
+    for idx, el in enumerate(arr):
+        res[idx] = np.argmax(el)
+    return res
+
+def format_all(arr):
+    """
+    
+    """
+    tabl = arr[0].copy()
+    result = []
+    max = tabl.max()
+    for el in tabl:
+        if el>= max:
+            result.append(1.0)
+        else:
+            result.append(0.0)
+    return np.array(result)
+
 class Network:
     def __init__(self):
         self.layers = []
@@ -33,9 +57,10 @@ class Network:
     def fit(self, x_train, y_train, epochs, learning_rate):
         # sample dimension first
         samples = len(x_train)
-
+        historic_loss = []
+        historic_f1 = []
         # training loop
-        for i in range(epochs):
+        for i in tqdm(range(epochs), leave=False):
             err = 0
             for j in range(samples):
                 # forward propagation
@@ -45,12 +70,18 @@ class Network:
 
                 # compute loss (for display purpose only)
                 err += self.loss(y_train[j], output)
-
                 # backward propagation
                 error = self.loss_prime(y_train[j], output)
                 for layer in reversed(self.layers):
                     error = layer.backward_propagation(error, learning_rate)
-
+            
+            #calculate f1 score
+            out = self.predict(x_train)
+            y_hat = category_to_bool(np.array(out).reshape(len(out),2))
+            f1 = f1_score_(category_to_bool(y_train), y_hat)
+            historic_f1.append(f1)
             # calculate average error on all samples
             err /= samples
-            # print('epoch %d/%d   error=%f' % (i+1, epochs, err))
+            historic_loss.append(err)
+        
+        return historic_loss, historic_f1
