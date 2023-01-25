@@ -106,18 +106,24 @@ Il existe un cas particulier de dZ dans la couche de sortie, car nous utilisons 
 ## Implémentation NumPy
 ### Data
 
-J'utiliserai le jeu de données (Dataset) Fourni
+J'utiliserai le jeu de données (Dataset) fourni par le sujet.Il s'agit d'un fichier csv de 32 colonnes, la colonne diagnostic étant l'étiquette (label) elle peut prendre la valeur M ou B (pour malin ou bénin).
+Les caractéristiques de l'ensemble de données décrivent les caractéristiques d'un noyau cellulaire d'une masse mammaire extraite par aspiration à aiguille fine.(pour des informations plus détaillées, cliquez [ici](https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.names)).
+
+A noté que l'on a 569 lignes contenant 32 attributs: (ID, Diagnostic (M/B), 30 caractéristiques d'entrée [features] sous forme de réels).
+
 ```python
 import pandas as pd
 
 def get_data(path):
     data = pd.read_csv(path, header=None)
     X = np.array(data[data.columns[2:]].values)
+    X = normalize(X)
     y =
     return np.array(X), np.array(y)
 
-X, y = get_data("<path_to_iris_csv>")
+X, y = get_data("data.csv")
 ```
+Les données doivent être Normalisées (par exemple avec un minmax)
 
 ### Contruction des Couches (Layers)
 ```python
@@ -271,7 +277,7 @@ model.add(DenseLayer(6))
 model.add(DenseLayer(8))
 model.add(DenseLayer(10))
 model.add(DenseLayer(3))
-model._compile
+model._compile(X)
 print(model.network[0].W.shape, model.network[0].b.shape)
 print(model.network[1].W.shape, model.network[1].b.shape)
 print(model.network[2].W.shape, model.network[2].b.shape)
@@ -366,5 +372,14 @@ Nous appelons cette fonction dans la méthode **_forwardprop** du réseau et pas
 
 ###Test de Forward Pass
 ```
+out = model._forwardprop(Xs)
+print('SHAPE:', out.shape)
+print('Probabilties at idx 0:', out[0])
+print('SUM:', sum(out[0]))
 
+Out -->
+SHAPE: (569, 2)
+Probabilties at idx 0: [0.03732996 0.96267004]
+SUM: 1.0
 ```
+Parfait. Tout se met en place ! Nous avons 569 instances mappées à nos 2 classes, et une distribution de probabilité pour chaque instance dont la somme est égale à 1.
