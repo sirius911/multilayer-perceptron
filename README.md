@@ -106,12 +106,17 @@ Il existe un cas particulier de dZ dans la couche de sortie, car nous utilisons 
 ## Implémentation NumPy
 ### Data
 
-J'utiliserai le jeu de données simple de l'iris pour ce modèle.(Dataset)
+J'utiliserai le jeu de données (Dataset) Fourni
 ```python
-from sklearn.preprocessing import LabelEncoderdef get_data(path):
-    data = pd.read_csv(path, index_col=0)    cols = list(data.columns)
-    target = cols.pop()    X = data[cols].copy()
-    y = data[target].copy()    y = LabelEncoder().fit_transform(y)    return np.array(X), np.array(y)X, y = get_data("<path_to_iris_csv>")
+import pandas as pd
+
+def get_data(path):
+    data = pd.read_csv(path, header=None)
+    X = np.array(data[data.columns[2:]].values)
+    y =
+    return np.array(X), np.array(y)
+
+X, y = get_data("<path_to_iris_csv>")
 ```
 
 ### Contruction des Couches (Layers)
@@ -119,27 +124,10 @@ from sklearn.preprocessing import LabelEncoderdef get_data(path):
 import numpy as np
 
 class DenseLayer:
-    def __init__(self, neurons):
+    def __init__(self, neurons, act_name='relu'):
         self.neurons = neurons
+        self.act_name = act_name
         
-    def relu(self, inputs):
-        """
-        ReLU Activation Function
-        """
-        raise NotImplementedError
-
-    def softmax(self, inputs):
-        """
-        Softmax Activation Function
-        """
-        raise NotImplementedError
-    
-    def relu_derivative(self, dA, Z):
-        """
-        ReLU Derivative Function
-        """
-        raise NotImplementedError
-    
     def forward(self, inputs, weights, bias, activation):
         """
         Single Layer Forward Propagation
@@ -228,28 +216,20 @@ def _compile(self, data):
     Initialize model architecture
     """
     for idx, layer in enumerate(self.network):
-        if idx == 0:
             self.architecture.append({'input_dim':data.shape[1], 
-                                      'output_dim':self.network[idx].neurons,
-                                     'activation':'relu'})
-        elif idx > 0 and idx < len(self.network)-1:
-            self.architecture.append({'input_dim':self.network[idx-1].neurons, 
-                                      'output_dim':self.network[idx].neurons,
-                                     'activation':'relu'})
-        else:
-            self.architecture.append({'input_dim':self.network[idx-1].neurons, 
-                                      'output_dim':self.network[idx].neurons,
-                                     'activation':'softmax'})
-    return self
+                                    'output_dim':self.network[idx].neurons,
+                                    'activation':layer.act_name})
+            layer.compile(data.shape[1])
+        return self
 ```
-Nous commençons par créer une matrice qui fait correspondre notre nombre de caractéristiques(features) au nombre de neurones de la couche d'entrée. A partir de là, c'est assez simple - la dimension d'entrée d'une nouvelle couche est le nombre de neurones de la couche précédente, la dimension de sortie est le nombre de neurones de la couche actuelle.
+Nous commençons par créer une matrice qui fait correspondre notre nombre de caractéristiques(features) au nombre de neurones de la couche d'entrée. A partir de là, c'est assez simple - la dimension d'entrée d'une nouvelle couche est le nombre de neurones de la couche précédente, la dimension de sortie est le nombre de neurones de la couche actuelle. On compile ensuite les paramètres pour chaque couche.
 
 ```
 model = Network()
-model.add(DenseLayer(6))
-model.add(DenseLayer(8))
-model.add(DenseLayer(10))
-model.add(DenseLayer(3))
+model.add(DenseLayer(6, 'relu'))
+model.add(DenseLayer(8, 'relu'))
+model.add(DenseLayer(10, 'relu'))
+model.add(DenseLayer(2, 'softmax'))
 
 model._compile(X)
 
@@ -260,29 +240,22 @@ Out -->
 [{'input_dim': 4, 'output_dim': 6, 'activation': 'relu'},
  {'input_dim': 6, 'output_dim': 8, 'activation': 'relu'},
  {'input_dim': 8, 'output_dim': 10, 'activation': 'relu'},
- {'input_dim': 10, 'output_dim': 3, 'activation': 'softmax'}]
+ {'input_dim': 10, 'output_dim': 2, 'activation': 'softmax'}]
 ```
 
 ### Paramètres
-Maintenant que nous avons créé un réseau, nous devons à nouveau initialiser dynamiquement nos paramètres d'apprentissage (W, b), pour un nombre arbitraire de couches/neurones.
+Maintenant que nous avons créé un réseau, nous devons à nouveau initialiser dynamiquement nos paramètres d'apprentissage (W, b), pour un nombre arbitraire de couches/neurones, dans la classe DenseLayer
 
 ```python
-def _init_weights(self, data):
-    """
-    Initialize model parameters
-    """
-    self._compile(data)
-
-    np.random.seed(99)
-
-    for i in range(len(self.architecture)):
-        self.params.append({
-            'W':np.random.uniform(low=-1, high=1, 
-              size=(self.architecture[i]['output_dim'], 
-                    self.architecture[i]['input_dim'])),
-            'b':np.zeros((1, self.architecture[i]['output_dim']))})
-
-    return self
+def compile(self, input_dim):
+        self.input_dim = input_dim
+        self.activation = act_funct[self.act_name]
+        self.activation_der = der_funct[self.act_name]
+        np.random.seed(99)
+        self.W = np.random.uniform(low=-1,
+                                    high=1,
+                                    size=(self.neurons, input_dim))
+        self.b = np.zeros((1, self.neurons))
 ```
 Comme vous pouvez le voir, nous créons une matrice de poids (**W**) à chaque couche.
 
@@ -297,38 +270,34 @@ model = Network()
 model.add(DenseLayer(6))
 model.add(DenseLayer(8))
 model.add(DenseLayer(10))
-model.add(DenseLayer(3))model._init_weights(X)
-print(model.params[0]['W'].shape, model.params[0]['b'].shape)
-print(model.params[1]['W'].shape, model.params[1]['b'].shape)
-print(model.params[2]['W'].shape, model.params[2]['b'].shape)
-print(model.params[3]['W'].shape, model.params[3]['b'].shape)
+model.add(DenseLayer(3))
+model._compile
+print(model.network[0].W.shape, model.network[0].b.shape)
+print(model.network[1].W.shape, model.network[1].b.shape)
+print(model.network[2].W.shape, model.network[2].b.shape)
+print(model.network[3].W.shape, model.network[3].b.shape)
 
 Out -->
-
-(6, 4) (1, 6)
-(8, 6) (1, 8)
-(10, 8) (1, 10)
-(3, 10) (1, 3)
+(6, 30) (1, 6)
+(8, 30) (1, 8)
+(10, 30) (1, 10)
+(2, 30) (1, 2)
 ```
 ### Propagation vers l'avant (Forward Propagation)
 Une fonction qui effectue un passage complet vers l'avant à travers le réseau.
 ```python
-def _forwardprop(self, data):
-    """
-    Performs one full forward pass through network
-    """
-    A_curr = data
+ def _forwardprop(self, data):
+        """
+        Performs one full forward pass through network
+        """
+        A_curr = data  # current activation result
 
-    for i in range(len(self.params)):
-        A_prev = A_curr
-        A_curr, Z_curr = self.network[i].forward(inputs=A_prev, 
-                                                 weights=self.params[i]['W'], 
-                                                 bias=self.params[i]['b'], 
-                                                 activation=self.architecture[i]['activation'])
-
-        self.memory.append({'inputs':A_prev, 'Z':Z_curr})
-
-    return A_curr
+        # iterate over layers Weight and bias
+        for layer in self.network:
+            # calculate forward propagation for specific layer
+            # save the ouput in A_curr and transfer it to the next layer
+            A_curr = layer.forward(A_curr)
+        return A_curr
 ```
 Nous transmettons la sortie de la couche précédente comme entrée à la suivante, désignée par **A_prev**.
 
@@ -377,19 +346,15 @@ où:
 ### $$\sum_j^k (e^{Z_j}) = somme \~ de \~ tous \~ les \~ e^{z_j}$$
 
 ### Forward Propagation sur une couche unique:
+la fonction *forward()* de la class DenseLayer:
 ```python
-def forward(self, inputs, weights, bias, activation):
-    """
-    Single Layer Forward Propagation
-    """
-    Z_curr = np.dot(inputs, weights.T) + bias
-
-    if activation == 'relu':
-        A_curr = self.relu(inputs=Z_curr)
-    elif activation == 'softmax':
-        A_curr = self.softmax(inputs=Z_curr)
-
-    return A_curr, Z_curr
+def forward(self, inputs):
+        """
+        Single Layer Forward Propagation
+        """
+        Z_curr = np.dot(inputs, self.W.T) + self.b
+        A_curr = self.activation(inputs=Z_curr)
+        return A_curr
 ```
 Avec:
 * inputs = A_prev
