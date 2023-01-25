@@ -87,3 +87,17 @@ Vous l'avez peut-être déjà remarqué, mais outre l'indice zéro, nous obtenon
 >>>
 ```
 La perte totale est la moyenne de tous les échantillons, désignée par m dans l'équation. Pour obtenir ce chiffre, il faut répéter le calcul ci-dessus pour chaque échantillon, calculer la somme et la diviser par le nombre total d'échantillons.
+
+*Descente de gradient stochastique (Stochastic Gradient Descent)*
+
+Maintenant que nous avons calculé la perte, il est temps de la minimiser. Nous commençons par calculer le gradient de nos probabilités de sortie par rapport aux paramètres d'entrée, puis nous rétropropageons les gradients vers les paramètres de chaque couche.
+
+À chaque couche, nous effectuons des calculs similaires à ceux du Forward Pass, sauf qu'au lieu de faire les calculs pour seulement Z et A, nous devons exécuter un calcul pour chaque paramètre (dZ, dW, db, dA), comme indiqué ci-dessous.
+
+*Hidden Layer (Couche cachée)
+
+* dZ: $$\partial Z^{[L]} = \partial A^{[L]} * g'(Z^{[L]} )$$
+* Weight Gradient:  $$\partial W^{[L]} = A_T^{[L - 1 ]} \bullet \partial Z^{[L]}$$
+* Bias Gradient:  $$\partial b^{[L]} = \sum_i^m \partial Z^{[L]\~(i) }$$
+* Activation Gradient:  $$\partial A^{[L - 1]} = \partial Z^{[L]} \bullet W^{[L]}$$
+
