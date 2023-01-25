@@ -383,3 +383,48 @@ Probabilties at idx 0: [0.03732996 0.96267004]
 SUM: 1.0
 ```
 Parfait. Tout se met en place ! Nous avons 569 instances mappées à nos 2 classes, et une distribution de probabilité pour chaque instance dont la somme est égale à 1.
+
+## Réseau (Network)
+### Backpropagation
+Une fonction qui effectue un passage complet en arrière dans le réseau.
+```python
+def _backprop(self, predicted, actual):
+        """
+        Performs one full backward pass through network
+        """
+        num_samples = len(actual)
+
+        # calculate loss derivative of our algorithm
+        dscores = predicted
+        dscores[range(num_samples), actual] -= 1
+        dscores /= num_samples
+
+        dA_curr = dscores
+        for layer in reversed(self.network):
+            # calculate backward propagation for specific layer
+            dA_curr = layer.backward(dA_curr)
+```
+Remarquez que nous commençons par la couche de sortie et passons à la couche d'entrée.
+
+## Couches - Backward Pass
+### Dérivée des fonctions d'Activation
+
+### $$\partial Z^{[L]} = \partial A^{[L]} * g'(Z$$
+
+### Backpropagation pour une couche
+
+dans la Class DenseLayer:
+```python
+def backward(self, dA_curr):
+        """
+        Single Layer Backward Propagation
+        """
+        dZ = self.activation_der(dA_curr, self.mZ)
+        dW = np.dot(self.mI.T, dZ)
+        db = np.sum(dZ, axis=0, keepdims=True)
+        dA = np.dot(dZ, self.W)
+
+        self.dW, self.db = dW, db #+ self.reg.regularize(W_curr)
+        return dA
+```
+Cette fonction rétropropage les gradients à chaque paramètre dans une couche.
