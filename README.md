@@ -428,3 +428,13 @@ def backward(self, dA_curr):
         return dA
 ```
 Cette fonction rétropropage les gradients à chaque paramètre dans une couche.
+```python
+def relu_prime(dA, Z):
+    """
+    ReLU Derivative Function
+    """
+    dZ = np.array(dA, copy = True)
+    dZ[Z <= 0] = 0
+    return dZ
+```
+
