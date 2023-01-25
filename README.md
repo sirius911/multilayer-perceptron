@@ -337,7 +337,7 @@ else:
 Utilisée dans la couche finale. Cette fonction prend un vecteur d'entrée de k valeurs réelles et le convertit en un vecteur de k probabilités dont la somme est égale à un.
 \overrightarrow
 ### $$\sigma (\overrightarrow{Z})_i = \frac{ e^{Z_i} }{\mathcal{D}}$$
-### $$ \mathcal{D} = \sum_{j=1}^K e^{z_j}$$
+### $$\mathcal{D} = \sum_{j=1}^K e^{z_j}$$
 
 où:
 
