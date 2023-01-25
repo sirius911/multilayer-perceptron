@@ -310,3 +310,66 @@ Out -->
 (10, 8) (1, 10)
 (3, 10) (1, 3)
 ```
+### Propagation vers l'avant (Forward Propagation)
+Une fonction qui effectue un passage complet vers l'avant à travers le réseau.
+```python
+def _forwardprop(self, data):
+    """
+    Performs one full forward pass through network
+    """
+    A_curr = data
+
+    for i in range(len(self.params)):
+        A_prev = A_curr
+        A_curr, Z_curr = self.network[i].forward(inputs=A_prev, 
+                                                 weights=self.params[i]['W'], 
+                                                 bias=self.params[i]['b'], 
+                                                 activation=self.architecture[i]['activation'])
+
+        self.memory.append({'inputs':A_prev, 'Z':Z_curr})
+
+    return A_curr
+```
+Nous transmettons la sortie de la couche précédente comme entrée à la suivante, désignée par **A_prev**.
+
+Nous stockons les entrées et la somme pondérée dans la mémoire du modèle. Ceci est nécessaire pour effectuer la passe en arrière.
+
+## Couches (Layers) - Forward Pass
+### Fonctions d'Activation
+```python
+def relu(self, inputs):
+    """
+    ReLU Activation Function
+    """
+    return np.maximum(0, inputs)
+
+def softmax(self, inputs):
+    """
+    Softmax Activation Function
+    """
+    exp_scores = np.exp(inputs)
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+    return probs
+```
+**N'oubliez pas qu'il s'agit de fonctions par élément.**
+
+*ReLu*
+
+Utilisé dans les couches cachées. La fonction et le graphique ont été mentionnés dans la section aperçu. Voici ce qui se passe lorsque nous appelons np.maximum().
+```
+`if input > 0:
+ return input
+else:
+ return 0
+```
+
+*Softmax*
+
+Utilisée dans la couche finale. Cette fonction prend un vecteur d'entrée de k valeurs réelles et le convertit en un vecteur de k probabilités dont la somme est égale à un.
+\overrightarrow
+### $$\sigma (\overrightarrow{Z})_i = \frac{ e^{Z_i} }{\mathcal{D}}$$
+### $$ \mathcal{D} = \sum_{j=1}^K e^{z_j}$$
+
+où:
+
+### $$e^{z_i} = np.exp(z) au \~ ieme \~ element$$
