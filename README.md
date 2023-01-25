@@ -152,3 +152,93 @@ class DenseLayer:
         """
         raise NotImplementedError
 ```
+
+### Contruction du réseau (Network)
+
+```python
+class Network:
+    def __init__(self):
+        self.network = [] ## layers
+        self.architecture = [] ## mapping input neurons --> output neurons
+        self.params = [] ## W, b
+        self.memory = [] ## Z, A
+        self.gradients = [] ## dW, db
+        
+    def add(self, layer):
+        """
+        Add layers to the network
+        """
+        self.network.append(layer)
+            
+    def _compile(self, data):
+        """
+        Initialize model architecture
+        """
+        raise NotImplementedError
+    
+    def _init_weights(self, data):
+        """
+        Initialize the model parameters 
+        """
+        raise NotImplementedError
+    
+    def _forwardprop(self, data):
+        """
+        Performs one full forward pass through network
+        """
+        raise NotImplementedError
+    
+    def _backprop(self, predicted, actual):
+        """
+        Performs one full backward pass through network
+        """
+        raise NotImplementedError
+            
+    def _update(self, lr=0.01):
+        """
+        Update the model parameters --> lr * gradient
+        """
+        raise NotImplementedError
+    
+    def _get_accuracy(self, predicted, actual):
+        """
+        Calculate accuracy after each iteration
+        """
+        raise NotImplementedError
+    
+    def _calculate_loss(self, predicted, actual):
+        """
+        Calculate cross-entropy loss after each iteration
+        """
+        raise NotImplementedError
+    
+    def train(self, X_train, y_train, epochs):
+        """
+        Train the model using SGD
+        """
+        raise NotImplementedError
+```
+
+## Réseau : Forward Pass
+### Architecture
+Commençons par initialiser dynamiquement l'architecture du réseau. Cela signifie que nous pouvons initialiser notre architecture de réseau pour un nombre arbitraire de couches et de neurones.
+```python
+def _compile(self, data):
+    """
+    Initialize model architecture
+    """
+    for idx, layer in enumerate(self.network):
+        if idx == 0:
+            self.architecture.append({'input_dim':data.shape[1], 
+                                      'output_dim':self.network[idx].neurons,
+                                     'activation':'relu'})
+        elif idx > 0 and idx < len(self.network)-1:
+            self.architecture.append({'input_dim':self.network[idx-1].neurons, 
+                                      'output_dim':self.network[idx].neurons,
+                                     'activation':'relu'})
+        else:
+            self.architecture.append({'input_dim':self.network[idx-1].neurons, 
+                                      'output_dim':self.network[idx].neurons,
+                         
+    return self
+```
