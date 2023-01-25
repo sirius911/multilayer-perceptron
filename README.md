@@ -373,3 +373,29 @@ Utilisée dans la couche finale. Cette fonction prend un vecteur d'entrée de k 
 où:
 
 ### $$e^{z_i} = np.exp(z) au \~ ieme \~ element$$
+
+### $$\sum_j^k (e^{Z_j}) = somme \~ de \~ tous \~ les \~ e^{z_j}$$
+
+### Forward Propagation sur une couche unique:
+```python
+def forward(self, inputs, weights, bias, activation):
+    """
+    Single Layer Forward Propagation
+    """
+    Z_curr = np.dot(inputs, weights.T) + bias
+
+    if activation == 'relu':
+        A_curr = self.relu(inputs=Z_curr)
+    elif activation == 'softmax':
+        A_curr = self.softmax(inputs=Z_curr)
+
+    return A_curr, Z_curr
+```
+Avec:
+* inputs = A_prev
+* weights = matrice de poids de la couche actuelle
+* bias = vecteur de biais de la couche actuelle
+* activation = fonction d'activation de la couche courante
+
+Nous appelons cette fonction dans la méthode **_forwardprop** du réseau et passons les paramètres du réseau en entrée.
+
