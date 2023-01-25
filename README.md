@@ -239,6 +239,74 @@ def _compile(self, data):
         else:
             self.architecture.append({'input_dim':self.network[idx-1].neurons, 
                                       'output_dim':self.network[idx].neurons,
-                         
+                                     'activation':'softmax'})
     return self
+```
+Nous commençons par créer une matrice qui fait correspondre notre nombre de caractéristiques(features) au nombre de neurones de la couche d'entrée. A partir de là, c'est assez simple - la dimension d'entrée d'une nouvelle couche est le nombre de neurones de la couche précédente, la dimension de sortie est le nombre de neurones de la couche actuelle.
+
+```
+model = Network()
+model.add(DenseLayer(6))
+model.add(DenseLayer(8))
+model.add(DenseLayer(10))
+model.add(DenseLayer(3))
+
+model._compile(X)
+
+print(model.architecture)
+
+Out -->
+
+[{'input_dim': 4, 'output_dim': 6, 'activation': 'relu'},
+ {'input_dim': 6, 'output_dim': 8, 'activation': 'relu'},
+ {'input_dim': 8, 'output_dim': 10, 'activation': 'relu'},
+ {'input_dim': 10, 'output_dim': 3, 'activation': 'softmax'}]
+```
+
+### Paramètres
+Maintenant que nous avons créé un réseau, nous devons à nouveau initialiser dynamiquement nos paramètres d'apprentissage (W, b), pour un nombre arbitraire de couches/neurones.
+
+```python
+def _init_weights(self, data):
+    """
+    Initialize model parameters
+    """
+    self._compile(data)
+
+    np.random.seed(99)
+
+    for i in range(len(self.architecture)):
+        self.params.append({
+            'W':np.random.uniform(low=-1, high=1, 
+              size=(self.architecture[i]['output_dim'], 
+                    self.architecture[i]['input_dim'])),
+            'b':np.zeros((1, self.architecture[i]['output_dim']))})
+
+    return self
+```
+Comme vous pouvez le voir, nous créons une matrice de poids (**W**) à chaque couche.
+
+Cette matrice contient un vecteur pour chaque neurone, et une dimension pour chaque caractéristique d'entrée.
+
+Il y a un vecteur de biais (**b**)avec une dimension pour chaque neurone dans une couche.
+
+Remarquez également que nous définissons un *np.random.seed()*, pour obtenir des résultats cohérents à chaque fois. Essayez de commenter cette ligne de code pour voir comment elle affecte vos résultats.
+
+```
+model = Network()
+model.add(DenseLayer(6))
+model.add(DenseLayer(8))
+model.add(DenseLayer(10))
+model.add(DenseLayer(3))model._init_weights(X)
+print(model.params[0]['W'].shape, model.params[0]['b'].shape)
+print(model.params[1]['W'].shape, model.params[1]['b'].shape)
+print(model.params[2]['W'].shape, model.params[2]['b'].shape)
+print(model.params[3]['W'].shape, model.params[3]['b'].shape)
+
+Out -->
+
+(6, 4) (1, 6)
+(8, 6) (1, 8)
+(10, 8) (1, 10)
+(3, 10) (1, 3)
 ```
