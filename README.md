@@ -409,7 +409,7 @@ Remarquez que nous commençons par la couche de sortie et passons à la couche d
 ## Couches - Backward Pass
 ### Dérivée des fonctions d'Activation
 
-### $$\partial Z^{[L]} = \partial A^{[L]} * g'(Z$$
+### $$\partial Z^{[L]} = \partial A^{[L]} * g'(Z^{[L]})$$
 
 ### Backpropagation pour une couche
 
