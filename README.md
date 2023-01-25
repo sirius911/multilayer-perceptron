@@ -358,8 +358,8 @@ def forward(self, inputs):
 ```
 Avec:
 * inputs = A_prev
-* weights = matrice de poids de la couche actuelle
-* bias = vecteur de biais de la couche actuelle
+* W = matrice de poids de la couche actuelle
+* b = vecteur de biais de la couche actuelle
 * activation = fonction d'activation de la couche courante
 
 Nous appelons cette fonction dans la méthode **_forwardprop** du réseau et passons les paramètres du réseau en entrée.
