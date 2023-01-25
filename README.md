@@ -101,3 +101,54 @@ Maintenant que nous avons calculé la perte, il est temps de la minimiser. Nous 
 * Bias Gradient:  $$\partial b^{[L]} = \sum_i^m \partial Z^{[L]\~(i) }$$
 * Activation Gradient:  $$\partial A^{[L - 1]} = \partial Z^{[L]} \bullet W^{[L]}$$
 
+Il existe un cas particulier de dZ dans la couche de sortie, car nous utilisons l'activation softmax. Ceci est expliqué en profondeur plus loin dans cet article.
+
+## Implémentation NumPy
+### Data
+
+J'utiliserai le jeu de données simple de l'iris pour ce modèle.(Dataset)
+```python
+from sklearn.preprocessing import LabelEncoderdef get_data(path):
+    data = pd.read_csv(path, index_col=0)    cols = list(data.columns)
+    target = cols.pop()    X = data[cols].copy()
+    y = data[target].copy()    y = LabelEncoder().fit_transform(y)    return np.array(X), np.array(y)X, y = get_data("<path_to_iris_csv>")
+```
+
+### Contruction des Couches (Layers)
+```python
+import numpy as np
+
+class DenseLayer:
+    def __init__(self, neurons):
+        self.neurons = neurons
+        
+    def relu(self, inputs):
+        """
+        ReLU Activation Function
+        """
+        raise NotImplementedError
+
+    def softmax(self, inputs):
+        """
+        Softmax Activation Function
+        """
+        raise NotImplementedError
+    
+    def relu_derivative(self, dA, Z):
+        """
+        ReLU Derivative Function
+        """
+        raise NotImplementedError
+    
+    def forward(self, inputs, weights, bias, activation):
+        """
+        Single Layer Forward Propagation
+        """
+        raise NotImplementedError
+    
+    def backward(self, dA_curr, W_curr, Z_curr, A_prev, activation):
+        """
+        Single Layer Backward Propagation
+        """
+        raise NotImplementedError
+```
