@@ -364,3 +364,7 @@ Avec:
 
 Nous appelons cette fonction dans la méthode **_forwardprop** du réseau et passons les paramètres du réseau en entrée.
 
+###Test de Forward Pass
+```
+
+```
