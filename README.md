@@ -106,7 +106,7 @@ Il existe un cas particulier de dZ dans la couche de sortie, car nous utilisons 
 ## Implémentation NumPy
 ### Data
 
-J'utiliserai le jeu de données (Dataset) fourni par le sujet.Il s'agit d'un fichier csv de 32 colonnes, la colonne diagnostic étant l'étiquette (label) elle peut prendre la valeur M ou B (pour malin ou bénin).
+J'utiliserai le jeu de données (Dataset) fourni par le sujet.Il s'agit d'un fichier csv de 32 colonnes, la colonne diagnostic étant l'étiquette (label) elle peut prendre la valeur M ou B (pour **M**alin ou **B**énin).
 Les caractéristiques de l'ensemble de données décrivent les caractéristiques d'un noyau cellulaire d'une masse mammaire extraite par aspiration à aiguille fine.(pour des informations plus détaillées, cliquez [ici](https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.names)).
 
 A noté que l'on a 569 lignes contenant 32 attributs: (ID, Diagnostic (M/B), 30 caractéristiques d'entrée [features] sous forme de réels).
@@ -124,8 +124,30 @@ def get_data(path):
 
 X, y = get_data("data.csv")
 ```
-Les données doivent être Normalisées (par exemple avec un minmax)
+Les données doivent être Normalisées (par exemple avec un minmax) et les labels (y) transformés en (0 ou 1)
 
+voici quelques infos sur le dataset après traitement: 
+```
+Shape of Xs = (569, 30) and shape of y = (569,)
+Nb of datas : 569
+        Nb features : 30
+Xs[:3] = [[0.52103744 0.0226581  0.54598853 0.36373277 0.59375282 0.7920373
+  0.70313964 0.73111332 0.68636364 0.60551811 0.35614702 0.12046941
+  0.3690336  0.27381126 0.15929565 0.35139844 0.13568182 0.30062512
+  0.31164518 0.18304244 0.62077552 0.14152452 0.66831017 0.45069799
+  0.60113584 0.61929156 0.56861022 0.91202749 0.59846245 0.41886396]
+ [0.64314449 0.27257355 0.61578329 0.50159067 0.28987993 0.18176799
+  0.20360825 0.34875746 0.37979798 0.14132266 0.15643672 0.08258929
+  0.12444047 0.12565979 0.11938675 0.08132304 0.0469697  0.25383595
+  0.08453875 0.0911101  0.60690146 0.30357143 0.53981772 0.43521431
+  0.34755332 0.15456336 0.19297125 0.63917526 0.23358959 0.22287813]
+ [0.60149557 0.3902604  0.59574321 0.44941676 0.51430893 0.4310165
+  0.46251172 0.63568588 0.50959596 0.21124684 0.22962158 0.09430251
+  0.18037035 0.16292179 0.15083115 0.2839547  0.09676768 0.38984656
+  0.20569032 0.12700551 0.55638563 0.36007463 0.50844166 0.37450845
+  0.48358978 0.38537513 0.35974441 0.83505155 0.40370589 0.21343303]]
+y[:3] = [1 1 1]
+```
 ### Contruction des Couches (Layers)
 ```python
 import numpy as np
