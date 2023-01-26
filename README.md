@@ -469,12 +469,12 @@ def _update(self, lr=0.01):
         """
         for layer in self.network:
             # update layer Weights and bias
-            layer.update(self.total_it, lr)
+            layer.update(lr)
 ```
 dans les couches :
 ```python
 
-def update(self, total_it:int, lr: float):
+def update(self, lr: float):
         if self.regul == 'l2':
             _lambda = 0.5
             m = len(self.dw)
@@ -485,3 +485,29 @@ def update(self, total_it:int, lr: float):
  ```
  A noter que j'ai rajouté la possibilité de faire une régularisation l2 (faudra peut-etre faire des class TODO)
  
+### Test
+```
+model = Network()
+model.add(DenseLayer(6, 'relu'))
+model.add(DenseLayer(8, 'relu'))
+model.add(DenseLayer(10, 'relu'))
+model.add(DenseLayer(2, 'softmax'))
+
+model._compile(Xs)
+
+model.train(Xs, y, 200)
+
+Out -->
+EPOCH: 0, ACCURACY: 0.37258347978910367, LOSS: 1.445556163784821
+EPOCH: 20, ACCURACY: 0.3936731107205624, LOSS: 0.7303298575724991
+EPOCH: 40, ACCURACY: 0.664323374340949, LOSS: 0.6109264451431674
+EPOCH: 60, ACCURACY: 0.875219683655536, LOSS: 0.5603079180980095
+EPOCH: 80, ACCURACY: 0.8910369068541301, LOSS: 0.5185322121582634
+EPOCH: 100, ACCURACY: 0.8963093145869947, LOSS: 0.46985917826143403
+EPOCH: 120, ACCURACY: 0.8927943760984183, LOSS: 0.4184126056024643
+EPOCH: 140, ACCURACY: 0.9068541300527241, LOSS: 0.3757569072836975
+EPOCH: 160, ACCURACY: 0.9226713532513181, LOSS: 0.3421094901271346
+EPOCH: 180, ACCURACY: 0.929701230228471, LOSS: 0.31399237195126795
+```
+### Résultats:
+![Figure_1](https://user-images.githubusercontent.com/25301163/214864741-5de050cc-7543-474e-9aeb-bbfdd564bcf3.png)
