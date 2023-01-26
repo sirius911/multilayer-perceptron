@@ -438,3 +438,50 @@ def relu_prime(dA, Z):
     return dZ
 ```
 
+### Entraînement du model
+```python
+def _get_accuracy(self, predicted, actual):
+        """
+        Calculate accuracy after each iteration
+        """
+        # for each sample get the index of the maximum value and compare it to the actual set
+        # then compute the mean of this False/True array
+        return float(np.mean(np.argmax(predicted, axis=1)==actual))
+    
+    def _calculate_loss(self, predicted: np.ndarray, actual: np.ndarray):
+        """
+        Calculate cross-entropy loss after each iteration
+        """
+        samples = len(actual)
+        temp = predicted[range(samples, actual.astype(int))]
+        temp[temp <= 0] = 1e-15
+        correct_logprobs = -np.log(temp)
+        data_loss = np.sum(correct_logprobs) / samples
+        return float(data_loss)
+```
+Il est maintenant temps d'effectuer une mise à jour des paramètres après chaque itération (epoch). Implémentons la méthode **_update.**
+
+Dans le réseau (**Network**) chaque couche (**layer**) se met à jour:
+```python
+def _update(self, lr=0.01):
+        """
+        Update the model parameters --> lr * gradient
+        """
+        for layer in self.network:
+            # update layer Weights and bias
+            layer.update(self.total_it, lr)
+```
+dans les couches :
+```python
+
+def update(self, total_it:int, lr: float):
+        if self.regul == 'l2':
+            _lambda = 0.5
+            m = len(self.dw)
+            self.dW += (_lambda / (2 * m)) * np.sum(self.dW ** 2)
+
+        self.W -= lr * self.dW.T
+        self.b -= lr * self.db
+ ```
+ A noter que j'ai rajouté la possibilité de faire une régularisation l2 (faudra peut-etre faire des class TODO)
+ 
