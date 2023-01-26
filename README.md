@@ -1,6 +1,6 @@
 # multilayer-perceptron
 
-Traduction de [Coding A Neural Network From Scratch in NumPy](https://towardsdatascience.com/coding-a-neural-network-from-scratch-in-numpy-31f04e4d605)
+Traduction et inspiration de [Coding A Neural Network From Scratch in NumPy](https://towardsdatascience.com/coding-a-neural-network-from-scratch-in-numpy-31f04e4d605)
 
 ### Introduction
 Dans cet article, je vais vous expliquer comment développer un réseau de neurones artificiels à partir de zéro en utilisant NumPy. L'architecture de ce modèle est la plus basique de tous les réseaux neuronaux artificiels : un réseau simple de type feed-forward. Je vais également montrer l'équivalent Keras de ce modèle, car j'ai essayé de rendre mon implémentation " Keras-esque ". Bien que l'architecture feed-forward soit basique par rapport à d'autres réseaux neuronaux tels que les transformateurs, ces concepts de base peuvent être extrapolés pour construire des ANN plus complexes. Ces sujets sont intrinsèquement techniques. Pour un article plus conceptuel sur l'IA, veuillez consulter mon autre article, [Demystifying Artificial Intelligence.](https://medium.com/geekculture/demystifying-artificial-intelligence-bdd9a117d4a6)
@@ -113,12 +113,13 @@ A noté que l'on a 569 lignes contenant 32 attributs: (ID, Diagnostic (M/B), 30 
 
 ```python
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 def get_data(path):
     data = pd.read_csv(path, header=None)
     X = np.array(data[data.columns[2:]].values)
     X = normalize(X)
-    y =
+    y = np.array(LabelEncoder().fit_transform(target).reshape(-1, 1))
     return np.array(X), np.array(y)
 
 X, y = get_data("data.csv")
@@ -154,9 +155,6 @@ class Network:
     def __init__(self):
         self.network = [] ## layers
         self.architecture = [] ## mapping input neurons --> output neurons
-        self.params = [] ## W, b
-        self.memory = [] ## Z, A
-        self.gradients = [] ## dW, db
         
     def add(self, layer):
         """
@@ -169,13 +167,7 @@ class Network:
         Initialize model architecture
         """
         raise NotImplementedError
-    
-    def _init_weights(self, data):
-        """
-        Initialize the model parameters 
-        """
-        raise NotImplementedError
-    
+        
     def _forwardprop(self, data):
         """
         Performs one full forward pass through network
@@ -226,6 +218,7 @@ def _compile(self, data):
                                     'output_dim':self.network[idx].neurons,
                                     'activation':layer.act_name})
             layer.compile(data.shape[1])
+            input_shape = self.network[idx].neurons
         return self
 ```
 Nous commençons par créer une matrice qui fait correspondre notre nombre de caractéristiques(features) au nombre de neurones de la couche d'entrée. A partir de là, c'est assez simple - la dimension d'entrée d'une nouvelle couche est le nombre de neurones de la couche précédente, la dimension de sortie est le nombre de neurones de la couche actuelle. On compile ensuite les paramètres pour chaque couche.
@@ -511,3 +504,4 @@ EPOCH: 180, ACCURACY: 0.929701230228471, LOSS: 0.31399237195126795
 ```
 ### Résultats:
 ![Figure_1](https://user-images.githubusercontent.com/25301163/214864741-5de050cc-7543-474e-9aeb-bbfdd564bcf3.png)
+Bien sur, maintenant reste à chercher la bonne architecture et travailler sur les param
