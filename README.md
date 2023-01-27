@@ -527,3 +527,5 @@ EPOCH: 180, ACCURACY: 0.929701230228471, LOSS: 0.31399237195126795
 ### Résultats:
 ![Figure_1](https://user-images.githubusercontent.com/25301163/214864741-5de050cc-7543-474e-9aeb-bbfdd564bcf3.png)
 Bien sur, maintenant reste à chercher la bonne architecture et travailler sur les param
+
+Articles interressant sur les fonction d'activations [ici](https://inside-machinelearning.com/fonction-dactivation-comment-ca-marche-une-explication-simple/)
