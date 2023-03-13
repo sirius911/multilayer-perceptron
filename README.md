@@ -110,7 +110,42 @@ J'utiliserai le jeu de données (Dataset) fourni par le sujet.Il s'agit d'un fic
 Les caractéristiques de l'ensemble de données décrivent les caractéristiques d'un noyau cellulaire d'une masse mammaire extraite par aspiration à aiguille fine.(pour des informations plus détaillées, cliquez [ici](https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.names)).
 
 A noté que l'on a 569 lignes contenant 32 attributs: (ID, Diagnostic (M/B), 30 caractéristiques d'entrée [features] sous forme de réels).
+```
+Les colonnes de ce dataset sont les suivantes:
 
+ID: Identifiant unique pour chaque patient
+Diagnosis: Résultat du diagnostic (M = maligne, B = bénigne)
+Radius Mean: Moyenne des distances depuis le centre jusqu'au périmètre
+Texture Mean: Déviation standard des valeurs de la couleur de la zone adjacente aux pixels
+Perimeter Mean: Moyenne de la taille de la tumeur
+Area Mean: Moyenne de la surface de la tumeur
+Smoothness Mean: Moyenne des variations locales de la longueur des rayons
+Compactness Mean: Moyenne de la proximité de la zone de la tumeur au centre
+Concavity Mean: Moyenne de la sévérité des parties concaves de la contour
+Concave Points Mean: Moyenne pour le nombre de points concaves de la contour
+Symmetry Mean: Moyenne pour la symétrie
+Fractal Dimension Mean: Moyenne pour la mesure de la complexité
+Radius SE: Écart-type des distances depuis le centre jusqu'au périmètre
+Texture SE: Écart-type des valeurs de la couleur de la zone adjacente aux pixels
+Perimeter SE: Écart-type de la taille de la tumeur
+Area SE: Écart-type de la surface de la tumeur
+Smoothness SE: Écart-type des variations locales de la longueur des rayons
+Compactness SE: Écart-type de la proximité de la zone de la tumeur au centre
+Concavity SE: Écart-type de la sévérité des parties concaves de la contour
+Concave Points SE: Écart-type pour le nombre de points concaves de la contour
+Symmetry SE: Écart-type pour la symétrie
+Fractal Dimension SE: Écart-type pour la mesure de la complexité
+Radius Worst: "Pire" (le plus grand) distance depuis le centre jusqu'au périmètre
+Texture Worst: "Pire" (la plus grande) déviation standard des valeurs de la couleur de la zone adjacente aux pixels
+Perimeter Worst: "Pire" (la plus grande) taille de la tumeur
+Area Worst: "Pire" (la plus grande) surface de la tumeur
+Smoothness Worst: "Pire" (la plus grande) variation locale de la longueur des rayons
+Compactness Worst: "Pire" (la plus grande) proximité de la zone de la tumeur au centre
+Concavity Worst: "Pire" (la plus grande) sévérité des parties concaves de la contour
+Concave Points Worst: "Pire" (le plus grand) nombre de points concaves de la contour
+Symmetry Worst: "Pire" (la plus grande) symétrie
+Fractal Dimension Worst: "Pire" (la plus grande) mesure de la complexité
+```
 ```python
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
