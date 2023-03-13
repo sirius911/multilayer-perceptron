@@ -99,6 +99,7 @@ class Network:
                 self._update()
                 if verbose and i%10 == 0:
                     print(f"epoch {i}/{epochs} - loss:{loss:} accuracy : {accuracy}")
+        return loss, accuracy
        
     def predict(self, X):
         y_hat = self._forwardprop(X, save=False)

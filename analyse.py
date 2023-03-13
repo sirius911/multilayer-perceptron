@@ -2,46 +2,14 @@ import sys, getopt
 from srcs.common import load_data, error
 from srcs.describe import describe
 from srcs.pair_plot import scatterplot
+from srcs.header import header
 
 type_analyse = ["describe", "pairplot"]
-
-header = ["ID",
-    "Diagnosis",
-    "Radius Mean",
-    "Texture Mean",
-    "Perimeter Mean",
-    "Area Mean",
-    "Smoothness Mean",
-    "Compactness Mean",
-    "Concavity Mean",
-    "Concave Points Mean",
-    "Symmetry Mean",
-    "Fractal Dimension Mean",
-    "Radius SE",
-    "Texture SE",
-    "Perimeter SE",
-    "Area SE",
-    "Smoothness SE",
-    "Compactness SE",
-    "Concavity SE",
-    "Concave Points SE",
-    "Symmetry SE",
-    "Fractal Dimension SE",
-    "Radius Worst",
-    "Texture Worst",
-    "Perimeter Worst",
-    "Area Worst",
-    "Smoothness Worst",
-    "Compactness Worst",
-    "Concavity Worst",
-    "Concave Points Worst",
-    "Symmetry Worst",
-    "Fractal Dimension Worst",]
 
 def usage(string = None):
     if string is not None:
         print(string)
-    print("usage: analyse -file=DATA --type=[describe | pairplot] --begin=X --end=X")
+    print("usage: analyse --file=DATA --type=[describe | pairplot] --begin=X --end=X")
     print("\t-f | --file=  : 'dataset.csv'")
     print("\t-t | --type=  : type of analyse (describe | pairplot) default: describe")
     print("\t-b | --begin= : first line of analysis (>1)")

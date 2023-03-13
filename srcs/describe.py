@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from .statistician import Statistician
-from .common import load_data, error
+from .common import error
 
 
 def get_description(data: pd.DataFrame, labelName: bool):
