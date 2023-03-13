@@ -18,39 +18,10 @@ def error(msg: str="", exit: int=2, color: str=colors.red):
     print(f"{color}{msg}")
     sys.exit(exit)
 
-# def dataset_control(data: pd.DataFrame, type_data):
-#     """ Control dataset integrity"""
-#     good_columns = ['Index', 'Hogwarts House', 'First Name', 'Last Name', 'Birthday',
-#        'Best Hand', 'Arithmancy', 'Astronomy', 'Herbology',
-#        'Defense Against the Dark Arts', 'Divination', 'Muggle Studies',
-#        'Ancient Runes', 'History of Magic', 'Transfiguration', 'Potions',
-#        'Care of Magical Creatures', 'Charms', 'Flying']
-#     nb_columns = 19
-#     nb_numeric_columns = 14
-#     if type_data in ['train', 'test']:
-#         if len(data.columns) != nb_columns:
-#             error("Bad dataset's file: the number of columns is wrong.")
-#         for col in data.columns:
-#             if col not in good_columns:
-#                error("Bad dataset's file: Bad name in a column.")
-        
-#     if type_data == 'train':
-#         # Hogwarts House columns must be not empty
-#         if data['Hogwarts House'].isnull().sum() != 0:
-#             error("Bad dataset's file: The Hogwarts House column has got empty value")
-#         if len(data.select_dtypes('number').columns) != nb_numeric_columns:
-#             error("Bad dataset's file: Numeric column has got non numeric value.")
-#     elif type_data == 'test':
-#         if data['Hogwarts House'].isnull().sum() != len(data):
-#             error("Bad dataset's file: The Hogwarts House column must be empty.")
-#         if len(data.select_dtypes('number').columns) != (nb_numeric_columns + 1):
-#             error("Bad dataset's file: Numeric column has got non numeric value.")
-#     return data
-
-def load_data(path: str, header : int = 0):
+def load_data(path: str, header : int = 0, names : list = None):
     try:
         with open(path, "r") as stream:
-            data = pd.read_csv(stream, header=header)
+            data = pd.read_csv(stream, header=header, names=names)
     except Exception as inst:
         error(inst)
     return data

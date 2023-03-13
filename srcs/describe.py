@@ -2,8 +2,8 @@ import numpy as np
 import getopt, sys
 import pandas as pd
 
-from statistician import Statistician
-from common import load_data, error
+from .statistician import Statistician
+from .common import load_data, error
 
 
 def get_description(data: pd.DataFrame, labelName: bool):
@@ -38,30 +38,3 @@ def describe(data: pd.DataFrame, begin: int, end: int, labelName: bool):
     data = get_description(data, labelName)
     df = pd.DataFrame(data, index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max", "Var", "NaN"])
     print(df.iloc[:, begin:end])
-
-
-def main(argv):
-    try:
-        opts, args = getopt.getopt(argv, "f:b:e:n", ["file=", "begin=", "end=", "name"])
-    except getopt.GetoptError as inst:
-        error(inst)
-
-    try:
-        for opt, arg in opts:
-            if opt in ["-f", "--file"]:
-                data = load_data(arg)
-        begin, end, labelName = 0, data.shape[1], False
-        for opt, arg in opts:
-            if opt in ["-b", "--begin"]:
-                begin = int(arg)
-            elif opt in ["-e", "--end"]:
-                end = int(arg)
-            elif opt in ["-n", "--name"]:
-                labelName = True
-        describe(data, begin, end, labelName)
-    except Exception as inst:
-        error(inst)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

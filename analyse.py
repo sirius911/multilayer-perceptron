@@ -1,65 +1,87 @@
 import sys, getopt
-import numpy as np
-import pandas as pd
-from srcs.statistician import Statistician
 from srcs.common import load_data, error
+from srcs.describe import describe
+from srcs.pair_plot import scatterplot
 
-def get_description(data: pd.DataFrame, labelName: bool):
-    res = {}
-    for idx, col_name in enumerate(data.columns[1:]):
-        name = idx
-        if labelName:
-            name = col_name
-        
-        number_nan = Statistician().count_nan(data[col_name].to_numpy())
-        
-        value = np.array(data[col_name].dropna())
-        quartile = Statistician().quartile(value)
-        res[name] = [
-            Statistician().count(value),
-            Statistician().mean(value),
-            Statistician().std(value),
-            Statistician().min(value),
-            quartile[0] if quartile is not None else None,
-            Statistician().median(value),
-            quartile[1] if quartile is not None else None,
-            Statistician().max(value),
-            Statistician().var(value),
-            number_nan,
-        ]
-    return res
+type_analyse = ["describe", "pairplot"]
 
-def describe(data: pd.DataFrame, begin: int, end: int, labelName: bool):
-    if end < begin or end < 0 or begin < 0 or end > data.shape[1]:
-        error("Invalid end or begin argument")
-    data = get_description(data, labelName)
-    df = pd.DataFrame(data, index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max", "Var", "NaN"])
-    print(df.iloc[:, begin:end])
+header = ["ID",
+    "Diagnosis",
+    "Radius Mean",
+    "Texture Mean",
+    "Perimeter Mean",
+    "Area Mean",
+    "Smoothness Mean",
+    "Compactness Mean",
+    "Concavity Mean",
+    "Concave Points Mean",
+    "Symmetry Mean",
+    "Fractal Dimension Mean",
+    "Radius SE",
+    "Texture SE",
+    "Perimeter SE",
+    "Area SE",
+    "Smoothness SE",
+    "Compactness SE",
+    "Concavity SE",
+    "Concave Points SE",
+    "Symmetry SE",
+    "Fractal Dimension SE",
+    "Radius Worst",
+    "Texture Worst",
+    "Perimeter Worst",
+    "Area Worst",
+    "Smoothness Worst",
+    "Compactness Worst",
+    "Concavity Worst",
+    "Concave Points Worst",
+    "Symmetry Worst",
+    "Fractal Dimension Worst",]
 
+def usage(string = None):
+    if string is not None:
+        print(string)
+    print("usage: analyse -file=DATA --type=[describe | pairplot] --begin=X --end=X")
+    print("\t-f | --file=  : 'dataset.csv'")
+    print("\t-t | --type=  : type of analyse (describe | pairplot) default: describe")
+    print("\t-b | --begin= : first line of analysis (>1)")
+    print("\t-b | --end=   : last line of analysis")
+    exit(1)
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "f:b:e:n", ["file=", "begin=", "end=", "name"])
+        opts, args = getopt.getopt(argv, "f:t:b:e:", ["file=", "type=","begin=", "end=", ])
     except getopt.GetoptError as inst:
-        error(inst)
-
+        usage(inst)
     try:
-        data=None
+        data = None
+        type = "describe"
         for opt, arg in opts:
             if opt in ["-f", "--file"]:
-                data = load_data(arg)
-                print(f"data.shape = {data.shape}")
+                data = load_data(arg, header=None, names=header)
+            if opt in ["-t", "--type"]:
+                type = arg
+                if type not in type_analyse:
+                    usage()
         if data is None:
-            error("No data specified (-f)")
-        begin, end, labelName = 0, data.shape[1], False
+            usage()
+        begin, end = 0, data.shape[1]
         for opt, arg in opts:
             if opt in ["-b", "--begin"]:
                 begin = int(arg)
             elif opt in ["-e", "--end"]:
                 end = int(arg)
-            elif opt in ["-n", "--name"]:
-                labelName = True
-        describe(data, begin, end, labelName)
+        if type == "describe": 
+            describe(data, begin, end, True)
+        else:
+            if begin == 0:
+                begin = 1
+            if end == data.shape[1]:
+                end = data.shape[1] - 2
+            if begin > 0 and end <= data.shape[1] - 2:
+                scatterplot(data, begin+1, end)
+            else:
+                error(f"Begin must be > 0 and end <= {data.shape[1] - 2}")
     except Exception as inst:
         error(inst)
 if __name__ == "__main__":
