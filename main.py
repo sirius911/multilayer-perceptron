@@ -8,16 +8,16 @@ from srcs.network import Network
 from srcs.metrics import f1_score_, perf_measure
 from srcs.layer import DenseLayer
 from srcs.confusion_matrix import confusion_matrix_
-from srcs.common import colors, load_data, error
-from srcs.header import header
+from srcs.common import colors, load_data, next_file_name
 import pickle
 
 def usage(string = None):
     if string is not None:
         print(string)
-    print("usage: main --file=DATA --mode=[train | predict] [--verbose]")
+    print("usage: main --file=DATA --mode=[train | predict] [--model=file] [--verbose]")
     print("\t-f | --file=  : 'dataset.csv'")
     print("\t-t | --mode=  : mode of function (train | predict)")
+    print("\t-o | --model= file : file name of the model to load or save (default models/model_xx.pkl)")
     print("\t-v | --verbose : mode Verbose to print for each epochs the loss and accuracy")
     exit(1)
 
@@ -27,12 +27,27 @@ def fit_transform(targets:np.ndarray, labels:list):
     in binaray option given by labels
     """
     if len(labels) != 2:
-        raise("Error in fit_transform: bad lenof labels")
+        raise("Error in fit_transform: bad len of labels")
         return None
     res = np.zeros((targets.shape[0]), dtype=int)
     for idx, target in enumerate(targets):
         res[idx] = (target[0] == labels[0])
     return res
+
+def print_succes(out, y_test, model):
+    print(f"\t using the model : {model}")
+    good = 0
+    for o,t in zip(out, y_test):
+        if np.argmax(o) == t:
+            good += 1
+    print(f"Succes = {good / len(y_test) * 100:.2f}%\t err = {100 - (good / len(y_test) * 100):.2f}%")
+    confusion = confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=True)
+    print(confusion)
+    TP, FP, TN, FN = perf_measure(y=y_test, y_hat=category_to_bool(out))
+    print(f"{TN + FN} {colors.green}begnin{colors.reset} cells with {TN} Thrue and {FN} False")
+    print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
+    print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
+
 
 def category_to_bool(arr:np.ndarray):
     res = np.zeros(len(arr))
@@ -40,7 +55,7 @@ def category_to_bool(arr:np.ndarray):
         res[idx] = np.argmax(el)
     return res
 
-def loop_train(data, verbose):
+def loop_train(data, verbose, file=None):
     # data = pd.read_csv("dataset/data.csv", header=None)
     target = np.array(data[1].values).reshape(-1,1)
 
@@ -79,8 +94,13 @@ def loop_train(data, verbose):
     loss, accuracy = model.train(x_train, y_train, 6000, verbose)
 
     # sauvegarde
-    print("save model in models/model.pkl ...", end="")
-    with open("models/model.pkl", "wb") as f:
+    if file is None:
+        file_name = next_file_name("models/model", ".pkl")
+    else:
+        file_name = file
+    model.file = file_name
+    print(f"save model in {colors.blue}{file_name}{colors.reset} ...", end="")
+    with open(file_name, "wb") as f:
         pickle.dump(model, f)
         print(f"{colors.green}OK{colors.reset}")
     print(f"Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}")
@@ -98,9 +118,14 @@ def loop_train(data, verbose):
     ax1.set_xlabel("epoch")
     ax1.set_ylabel("loss")
     ax2.set_ylabel("Accuracy")
+    plt.title(file_name)
     plt.show()
 
-def predict(data):
+    print(f"Prediction on datatest ({len(x_test)} lines)")
+    out = model.predict(x_test)
+    print_succes(out, y_test, model)
+
+def predict(data, file_model):
     target = np.array(data[1].values).reshape(-1,1)
     Xs = np.array(data[data.columns[2:]].values)
     Xs=normalize(Xs)
@@ -108,31 +133,15 @@ def predict(data):
 
     y_test = fit_transform(y_test, ['M', 'B'])
     model = None
-    with open("models/model.pkl", "rb") as f:
+    with open(file_model, "rb") as f:
         model = pickle.load(f)
-    print(f"Prediction on datatest ({len(x_test)} lines)")
-    print(model.loss[-1])    
+    print(f"Prediction on datatest ({len(x_test)} lines)")  
     out = model.predict(x_test)
-
-    good = 0
-    for o,t in zip(out, y_test):
-        if np.argmax(o) == t:
-            good += 1
-    print(f"Succes = {good / len(y_test) * 100:.2f}%\t err = {100 - (good / len(y_test) * 100):.2f}%")
-    f1 = f1_score_(y=y_test, y_hat= category_to_bool(out))
-    print(f"F1 score = {colors.green}{f1}{colors.reset}")
-    cross_entropy = model._calculate_loss(out, y_test)
-    print(f"Cross-Entropy = {cross_entropy}")
-    confusion = confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=True)
-    print(confusion)
-    TP, FP, TN, FN = perf_measure(y=y_test, y_hat=category_to_bool(out))
-    print(f"{TN + FN} {colors.green}begnin{colors.reset} cells with {TN} Thrue and {FN} False")
-    print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
-    print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
+    print_succes(out, y_test, model)
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "f:m:v", ["file=", "mode=", "verbose"])
+        opts, args = getopt.getopt(argv, "f:m:o:v", ["file=", "mode=", "model=", "verbose"])
     except getopt.GetoptError as inst:
         usage(inst)
 
@@ -140,6 +149,7 @@ def main(argv):
         mode = None
         data = None
         verbose = False
+        file_model = None
         for opt, arg in opts:
             if opt in ["-f", "--file"]:
                 data = load_data(arg, header=None)
@@ -150,13 +160,15 @@ def main(argv):
                 mode = arg
             elif opt in ["-v", "--verbose"]:
                 verbose = True
+            elif opt in ["-o", "--model"]:
+                file_model = arg
         if mode not in ["train", "predict"]:
             usage("Bad Mode")
         print(f"********** {colors.green}{mode.upper()}{colors.reset} **********")
         if mode == "train":
-            loop_train(data, verbose)
+            loop_train(data, verbose, file_model)
         else:
-            predict(data)
+            predict(data, file_model)
         print("Good by !")
     except Exception as inst:
         usage(inst)

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import sys
@@ -43,3 +44,14 @@ def is_numeric(array: np.ndarray):
     converted to a NumPy array.
     """
     return np.asarray(array).dtype.kind in _NUMERIC_KINDS
+
+def next_file_name(name, ext):
+    """
+    return the file_name_x with incrementation for a new file
+    """
+    i = 0
+    file_name = f"{name}{ext}"
+    while os.path.exists(file_name):
+        i += 1
+        file_name = f"{name}_{i}{ext}"
+    return file_name

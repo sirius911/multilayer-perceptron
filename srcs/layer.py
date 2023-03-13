@@ -1,6 +1,7 @@
 # Base class
 import numpy as np
 from .activations import act_funct, der_funct
+from .common import colors
 
 class DenseLayer:
     def __init__(self, neurons, act_name='relu'):
@@ -50,3 +51,6 @@ class DenseLayer:
 
         self.W -= lr * self.dW.T
         self.b -= lr * self.db
+
+    def __str__(self):
+        return f"({colors.blue}{str(self.neurons)}{colors.reset} neurons [{colors.green}{self.act_name}{colors.reset}])"

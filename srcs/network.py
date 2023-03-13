@@ -1,11 +1,13 @@
 import numpy as np
 from tqdm import tqdm
+from .common import colors
 
 class Network:
     def __init__(self):
         self.network = [] ## layers
         self.architecture = [] ## mapping input neurons --> output neurons
-        
+        self.file = "Not Saved"
+
     def add(self, layer):
         """
         Add layers to the network
@@ -104,3 +106,9 @@ class Network:
     def predict(self, X):
         y_hat = self._forwardprop(X, save=False)
         return y_hat
+
+    def __str__(self):
+        res = colors.yellow + str(self.file) + colors.reset + " with "
+        for layer in self.network:
+            res = res + layer.__str__() + "\t"
+        return res
