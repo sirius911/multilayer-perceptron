@@ -61,7 +61,7 @@ model.add(DenseLayer(2, 'softmax'))
 
 model._compile(x_train)
 
-model.train(x_train, y_train, 1000, False)
+model.train(x_train, y_train, 1000, True)
 
 accuracy = model.accuracy
 loss = model.loss

@@ -87,28 +87,19 @@ class Network:
         """
         self.loss = []
         self.accuracy = []
-        if verbose:
-            for i in range(epochs):
-                yhat = self._forwardprop(X_train, save=True)
-                accuracy = self._get_accuracy(predicted=yhat, actual=y_train)
-                self.accuracy.append(accuracy)
-                loss = self._calculate_loss(predicted=yhat, actual=y_train)
-                self.loss.append(loss)
-                self._backprop(predicted=yhat, actual=y_train)
-                self._update()
-                if i%10 == 0:
-                    print(f"epoch {i}/{epochs} - loss:{loss:} accuracy : {accuracy}")
-        else:
-            for i in tqdm(range(epochs), leave=False, colour='green'):
-            
-                yhat = self._forwardprop(X_train, save=True)
-                accuracy = self._get_accuracy(predicted=yhat, actual=y_train)
-                self.accuracy.append(accuracy)
-                loss = self._calculate_loss(predicted=yhat, actual=y_train)
-                self.loss.append(loss)
-                self._backprop(predicted=yhat, actual=y_train)
-                self._update()
+        loop = range(epochs) if verbose else tqdm(range(epochs), leave=False, colour='green')
 
+        for i in loop:
+                yhat = self._forwardprop(X_train, save=True)
+                accuracy = self._get_accuracy(predicted=yhat, actual=y_train)
+                self.accuracy.append(accuracy)
+                loss = self._calculate_loss(predicted=yhat, actual=y_train)
+                self.loss.append(loss)
+                self._backprop(predicted=yhat, actual=y_train)
+                self._update()
+                if verbose and i%10 == 0:
+                    print(f"epoch {i}/{epochs} - loss:{loss:} accuracy : {accuracy}")
+       
     def predict(self, X):
         y_hat = self._forwardprop(X, save=False)
         return y_hat
