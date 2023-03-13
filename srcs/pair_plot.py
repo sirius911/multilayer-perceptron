@@ -1,10 +1,7 @@
-import getopt, sys
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from .common import colors
-
-from .common import load_data, error
 
 def scatterplot(d: pd.DataFrame, begin : int, end : int):
     # data = d.drop(d.columns[[0]], axis=1, inplace=False)

@@ -6,7 +6,6 @@ import yaml
 
 _NUMERIC_KINDS = set('buifc')
 
-
 class colors:
     green = '\033[92m' # vert
     blue = '\033[94m' # blue

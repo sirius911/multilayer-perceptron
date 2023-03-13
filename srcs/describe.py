@@ -1,5 +1,4 @@
 import numpy as np
-import getopt, sys
 import pandas as pd
 
 from .statistician import Statistician
