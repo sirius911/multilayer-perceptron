@@ -23,7 +23,7 @@ def create_models(file_params = 'models/neural_network_params.yml'):
     for model_config in config['networks']:
         model = Network()
         model.file = model_config['name']
-        model.epochs = model_config['iter']
+        model.epochs = model_config['epoch']
         for layer in model_config['layers']:
             model.add(DenseLayer(layer['neurons'], layer['activation']))
         ret_models.append(model)
@@ -37,9 +37,10 @@ def load_models(file_params = 'models/neural_network_params.yml'):
     ret_models = []
     for model_config in config['networks']:
         file_name = f"models/{model_config['name']}"
-        with open(file_name, "rb") as f:
-            model = pickle.load(f)
-        ret_models.append(model)
+        if os.path.exists(file_name):
+            with open(file_name, "rb") as f:
+                model = pickle.load(f)
+            ret_models.append(model)
     return ret_models
 
 def get_model(file_params = 'models/neural_network_params.yml', model_name='models/model.pkl'):
@@ -51,7 +52,7 @@ def get_model(file_params = 'models/neural_network_params.yml', model_name='mode
         if model_config['name'] == model_name:
             model = Network()
             model.file = model_config['name']
-            model.epochs = model_config['iter']
+            model.epochs = model_config['epoch']
             for layer in model_config['layers']:
                 model.add(DenseLayer(layer['neurons'], layer['activation']))
             return model

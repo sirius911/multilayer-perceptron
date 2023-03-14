@@ -11,7 +11,7 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    iter: 2000
+    epoch: 2000
   - name: model_1.pkl
     layers:
       - neurons: 60
@@ -22,7 +22,7 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    iter: 2000
+    epoch: 2000
   - name: model_2.pkl
     layers:
       - neurons: 120
@@ -33,4 +33,4 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    iter: 3000
+    epoch: 3000

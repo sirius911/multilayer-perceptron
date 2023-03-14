@@ -124,11 +124,14 @@ class Network:
 
     def __str__(self):
         file_name = f"models/{self.file}"
-        timestamp_modif = os.path.getmtime(file_name)
-        date_modif = datetime.datetime.fromtimestamp(timestamp_modif)   
+        if os.path.exists(file_name):
+            timestamp_modif = os.path.getmtime(file_name)
+            date_modif = datetime.datetime.fromtimestamp(timestamp_modif).strftime("%Y-%m-%d %H:%M:%S")   
+        else:
+            date_modif = "not created"
         res = colors.yellow + str(self.file) + colors.reset + " with "
         for layer in self.network:
             res = res + layer.__str__() + "\t"
-        res = res + "\n\tlast training : " + colors.yellow + date_modif.strftime("%Y-%m-%d %H:%M:%S") + colors.reset
+        res = res + "\n\tlast training : " + colors.yellow + date_modif + colors.reset
         res = res + "\n\tCross-Entropy : " + colors.blue + str(self.get_cross_entropy()) + colors.reset
         return res

@@ -1,12 +1,13 @@
 import numpy as np
 import math
-
+from .common import colors
 
 def data_spliter(x: np.ndarray, y: np.ndarray, proportion: float=0.8):
     """
     split data into a train set and a test set, respecting to the given proportion
     return (x_train, x_test, y_train, y_test)
     """
+    np.random.seed(42)
     if (not isinstance(x, np.ndarray) or not isinstance(x, np.ndarray) or not isinstance(proportion, float)):
         print("spliter invalid type")
         return None
@@ -107,3 +108,50 @@ def intercept_(x):
     except Exception as inst:
         print(inst)
         return None
+
+def category_to_bool(arr:np.ndarray):
+    res = np.zeros(len(arr))
+    for idx, el in enumerate(arr):
+        res[idx] = np.argmax(el)
+    return res
+
+def fit_transform(targets:np.ndarray, labels:list):
+    """
+    the fit_transform of LabelEncord from sklearn.preprocessing
+    in binaray option given by labels
+    """
+    if len(labels) != 2:
+        raise("Error in fit_transform: bad len of labels")
+        return None
+    res = np.zeros((targets.shape[0]), dtype=int)
+    for idx, target in enumerate(targets):
+        res[idx] = (target[0] == labels[0])
+    return res
+
+def prepare_data(data, verbose, split=0.8):
+    """
+        Prepare the data :
+            - split in x_train, y_train, x_test, y_test with split param
+            - Normalize
+            - put 'M' & 'B' on 1|0
+    """
+    target = np.array(data[1].values).reshape(-1,1)
+    Xs = np.array(data[data.columns[2:]].values)
+    Xs=normalize(Xs)
+    #split data
+    x_train, y_train, x_test, y_test = data_spliter(Xs, target, split)
+
+    y_train = fit_transform(y_train, ['M', 'B'])
+    y_test = fit_transform(y_test, ['M', 'B'])
+    
+    if verbose:
+        nb_input = x_train.shape[1]
+        nb_train = x_train.shape[0]
+        nb_test = x_test.shape[0]
+        print("*** Preparation of Data ***")
+        print(f"\tNb of data : {colors.green}{len(Xs)}{colors.reset}")
+        print(f"\tNb features : {colors.blue}{nb_input}{colors.reset}")
+        print(f"\tNb data for training ({colors.yellow}{split*100}%{colors.reset}) : {colors.blue}{nb_train}{colors.reset}")
+        print(f"\tNb data for test ({colors.yellow}{100-(split*100)}%{colors.reset}) : {colors.blue}{nb_test}{colors.reset}")
+        print("*******************")
+    return x_train, y_train, x_test, y_test

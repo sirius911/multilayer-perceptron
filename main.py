@@ -4,10 +4,8 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from srcs.utils_ml import data_spliter, normalize
-# from srcs.network import Network
-from srcs.metrics import f1_score_, perf_measure
-# from srcs.layer import DenseLayer
+from srcs.utils_ml import prepare_data, category_to_bool
+from srcs.metrics import perf_measure
 from srcs.confusion_matrix import confusion_matrix_
 from srcs.common import colors, load_data
 from srcs.yml_utils import create_models, get_model, load_models
@@ -21,6 +19,7 @@ def usage(string = None, extend=False):
     print("\t-f | --file=  : 'dataset.csv'")
     print("\t-t | --train  : training mode ( the option --model= can be a specific model describe in models/neural_netk_params.yml)")
     print("\t-p | --predict: predict mode (the --model option can be the file of the model to predict)")
+    print("\t\t(without option, the prediction is done with the best model )")
     print("\t-o | --model= model's name : name of the model to load in training mode (default models/model_xx.pkl)")
     print("\t\t or a neural networks params.yml file in training mode")
     print("\t-s | --split= xx.yy : split ratio between training and test data: (--split=0.7 means 70% for training and 30% for test) (default 0.8)")
@@ -33,22 +32,25 @@ def usage(string = None, extend=False):
         print("\t$> python3 main.py -f dataset/data.csv -t -o model_2.pkl -s 0.7")
         print("\t$> python3 main.py -f dataset/data.csv --predict -o models/model.pkl")
         print("\t$> python3 main.py -f dataset/data.csv -p -o models/model_2.pkl")
+        print("-------------------------------------------------------------------------------")
+        print("The 'neural_network_params.yml' is formated like this : ")
+        print("networks:")
+        print("  - name: model.pkl")
+        print("    layers:")
+        print("      - neurons: 30")
+        print("        activation: relu")
+        print("      - neurons: 15")
+        print("        activation: relu")
+        print("      - neurons: 2")
+        print("        activation: softmax")
+        print("    epoch: 2000")   
+        print("\nwith Activations : relu, softmax, sigmoid, tanh")
     exit(1)
 
-def fit_transform(targets:np.ndarray, labels:list):
-    """
-    the fit_transform of LabelEncord from sklearn.preprocessing
-    in binaray option given by labels
-    """
-    if len(labels) != 2:
-        raise("Error in fit_transform: bad len of labels")
-        return None
-    res = np.zeros((targets.shape[0]), dtype=int)
-    for idx, target in enumerate(targets):
-        res[idx] = (target[0] == labels[0])
-    return res
-
 def print_succes(out, y_test, model):
+    """
+        print the performances of the model on the test data
+    """
     print(f"\t using the model : {model}")
     good = 0
     for o,t in zip(out, y_test):
@@ -62,42 +64,10 @@ def print_succes(out, y_test, model):
     print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
     print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
 
-
-def category_to_bool(arr:np.ndarray):
-    res = np.zeros(len(arr))
-    for idx, el in enumerate(arr):
-        res[idx] = np.argmax(el)
-    return res
-
-def prepare_data(data, verbose, split=0.8):
-    """
-        Prepare the data :
-            - split in x_train, y_train, x_test, y_test with split param
-            - Normalize
-            - put 'M' & 'B' on 1|0
-    """
-    target = np.array(data[1].values).reshape(-1,1)
-    Xs = np.array(data[data.columns[2:]].values)
-    Xs=normalize(Xs)
-    #split data
-    x_train, y_train, x_test, y_test = data_spliter(Xs, target, split)
-
-    y_train = fit_transform(y_train, ['M', 'B'])
-    y_test = fit_transform(y_test, ['M', 'B'])
-    
-    if verbose:
-        nb_input = x_train.shape[1]
-        nb_train = x_train.shape[0]
-        nb_test = x_test.shape[0]
-        print("*** Preparation of Data ***")
-        print(f"\tNb of data : {colors.green}{len(Xs)}{colors.reset}")
-        print(f"\tNb features : {colors.blue}{nb_input}{colors.reset}")
-        print(f"\tNb data for training ({colors.yellow}{split*100}%{colors.reset}) : {colors.blue}{nb_train}{colors.reset}")
-        print(f"\tNb data for test ({colors.yellow}{100-(split*100)}%{colors.reset}) : {colors.blue}{nb_test}{colors.reset}")
-        print("*******************")
-    return x_train, y_train, x_test, y_test
-
 def loop_multi_training(data, split, verbose=False, graphics=False):
+    """
+    Training all the model in models/neural_network_params.yml
+    """
     x_train, y_train, _, _ = prepare_data(data, verbose, split)
     tab_models = create_models('models/neural_network_params.yml')
     for model in tab_models:
@@ -129,7 +99,9 @@ def loop_multi_training(data, split, verbose=False, graphics=False):
     plt.show()
 
 def loop_train(data, split, verbose, model_name, graphics=False):
-
+    """
+        train the model_name only
+    """
     x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
     model = get_model('models/neural_network_params.yml', model_name=model_name)
     print(f"\t model : {model}")
@@ -167,6 +139,9 @@ def loop_train(data, split, verbose, model_name, graphics=False):
         print_succes(out, y_test, model)
 
 def predict(data, file_model, verbose, split):
+    """
+    make prediction with the file_model
+    """
     _, _, x_test, y_test = prepare_data(data, verbose, split)
     model = None
     with open(file_model, "rb") as f:
@@ -191,7 +166,7 @@ def best():
     if best_model is not None:
         print(f"Best Model is {colors.green}{best_model.file}{colors.reset} with Cross-Entropy = {colors.blue}{best_model.get_cross_entropy()}{colors.reset}")
     else:
-        print(f"Best Model {colors.red}Not Found{colors.reset}")
+        print(f"Models {colors.red}Not Found{colors.reset}")
 def main(argv):
     try:
         opts, args = getopt.getopt(argv, "f:m:o:s:vhtpgb", ["file=", "predict", "train", "model=", "help", "split=", "verbose", "graphics", "best"])
