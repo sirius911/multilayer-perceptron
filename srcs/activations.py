@@ -9,6 +9,7 @@ def tanh_prime(inputs, Z):
     return 1-np.tanh(inputs)**2
 
 def sigmoid(inputs):
+    inputs = np.clip(inputs, -500, 500)
     return 1/(1 + np.exp(-inputs))
 
 def sigmoid_prime(inputs, Z):

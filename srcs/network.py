@@ -121,6 +121,14 @@ class Network:
         if len(self.loss) > 0:
             return self.loss[-1]
         return None
+    
+    def get_accuracy(self):
+        """
+            return the last calcul Accuracy
+        """
+        if len(self.accuracy) > 0:
+            return self.accuracy[-1]
+        return None
 
     def __str__(self):
         file_name = f"models/{self.file}"

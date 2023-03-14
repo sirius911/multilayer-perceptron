@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from srcs.utils_ml import prepare_data, category_to_bool
-from srcs.metrics import perf_measure
+from srcs.metrics import perf_measure, f1_score_
 from srcs.confusion_matrix import confusion_matrix_
 from srcs.common import colors, load_data
 from srcs.yml_utils import create_models, get_model, load_models
@@ -57,6 +57,8 @@ def print_succes(out, y_test, model):
         if np.argmax(o) == t:
             good += 1
     print(f"Succes = {good / len(y_test) * 100:.2f}%\t err = {100 - (good / len(y_test) * 100):.2f}%")
+    f1_score = f1_score_(y_test, category_to_bool(out))
+    print(f"f1 score = {colors.green}{f1_score:.4f}{colors.reset}")
     confusion = confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=True)
     print(confusion)
     TP, FP, TN, FN = perf_measure(y=y_test, y_hat=category_to_bool(out))
@@ -87,15 +89,16 @@ def loop_multi_training(data, split, verbose=False, graphics=False):
             fig = plt.figure()
             ax1 = fig.add_subplot()
             ax2 = ax1.twinx()
-            lns1 = ax1.plot(np.arange(len(loss)), loss, label='loss', color='r')
+            lns1 = ax1.plot(np.arange(len(loss)), loss, label='Cross-Entropy', color='r')
             lns2 = ax2.plot(np.arange(len(accuracy)), accuracy, label='Accuracy', color='b')
             lns = lns1 + lns2
             labs = [l.get_label() for l in lns]
             ax1.legend(lns, labs, loc=0)
             ax1.set_xlabel("epoch")
-            ax1.set_ylabel("loss")
+            ax1.set_ylabel("Cross-Entropy")
             ax2.set_ylabel("Accuracy")
             plt.title(file_name)
+        print("-----------------------------------------------------------")
     plt.show()
 
 def loop_train(data, split, verbose, model_name, graphics=False):
@@ -107,7 +110,7 @@ def loop_train(data, split, verbose, model_name, graphics=False):
     print(f"\t model : {model}")
     model._compile(x_train)
 
-    loss, accuracy = model.train(x_train, y_train, 6000, verbose)
+    loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
 
     # sauvegarde 
     file_name = f"models/{model.file}"
@@ -123,13 +126,13 @@ def loop_train(data, split, verbose, model_name, graphics=False):
         fig = plt.figure()
         ax1 = fig.add_subplot()
         ax2 = ax1.twinx()
-        lns1 = ax1.plot(np.arange(len(loss)), loss, label='loss', color='r')
+        lns1 = ax1.plot(np.arange(len(loss)), loss, label='Cross-Entropy', color='r')
         lns2 = ax2.plot(np.arange(len(accuracy)), accuracy, label='Accuracy', color='b')
         lns = lns1 + lns2
         labs = [l.get_label() for l in lns]
         ax1.legend(lns, labs, loc=0)
         ax1.set_xlabel("epoch")
-        ax1.set_ylabel("loss")
+        ax1.set_ylabel("Cross-Entropy")
         ax2.set_ylabel("Accuracy")
         plt.title(file_name)
         plt.show()
@@ -150,23 +153,30 @@ def predict(data, file_model, verbose, split):
     out = model.predict(x_test)
     print_succes(out, y_test, model)
 
-def best():
+def best(verbose=False):
     """
-    return name of best Model
+    return the best Model
     """
     tab_models = load_models('models/neural_network_params.yml')
-    best_cross = 100
-    best_model = None
+    best_accuracy = 0
+    best_model_accuracy = None
     for model in tab_models:
-        print(model)
+        if verbose:
+            print(model)
         cross = model.get_cross_entropy()
-        if cross < best_cross:
-            best_cross = cross
-            best_model = model
-    if best_model is not None:
-        print(f"Best Model is {colors.green}{best_model.file}{colors.reset} with Cross-Entropy = {colors.blue}{best_model.get_cross_entropy()}{colors.reset}")
+        accuracy = model.get_accuracy()
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_model_accuracy = model
+    if best_model_accuracy is not None:
+        if verbose:
+            print(f"Best Model is {colors.green}{best_model_accuracy.file}{colors.reset} with Accuracy = {colors.blue}{best_model_accuracy.get_accuracy()}{colors.reset}")
+        return f"models/{best_model_accuracy.file}"
     else:
-        print(f"Models {colors.red}Not Found{colors.reset}")
+        if verbose:
+            print(f"Models {colors.red}Not Found{colors.reset}")
+        return None
+
 def main(argv):
     try:
         opts, args = getopt.getopt(argv, "f:m:o:s:vhtpgb", ["file=", "predict", "train", "model=", "help", "split=", "verbose", "graphics", "best"])
@@ -201,9 +211,9 @@ def main(argv):
             elif opt in ["-s", "--split"]:
                 split = float(arg)
             elif opt in ["-b", "--best"]:
-                best()
+                best(True)
                 return
-        if mode not in ["train", "predict"]:
+        if mode not in ["train", "predict",]:
             usage("Bad Mode")
         print(f"********** {colors.green}{mode.upper()}{colors.reset} **********")
         if mode == "train":
@@ -213,7 +223,9 @@ def main(argv):
                 loop_multi_training(data=data, split=split, verbose=verbose, graphics=graphics)
         else: # Predict mode
             if model is None:
-                model = "models/model.pkl"
+                model = best(verbose=verbose)
+                if model is None:
+                    usage("no model has been trained")
             predict(data=data,file_model=model, verbose=verbose, split=split)
         
     except Exception as inst:

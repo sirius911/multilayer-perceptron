@@ -34,3 +34,34 @@ networks:
       - neurons: 2
         activation: softmax
     epoch: 3000
+  - name: model_3.pkl
+    layers:
+      - neurons: 240
+        activation: relu
+      - neurons: 30
+        activation: relu
+      - neurons: 15
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    epoch: 3000
+  - name: model_4.pkl
+    layers:
+      - neurons: 500
+        activation: relu
+      - neurons: 100
+        activation: relu
+      - neurons: 15
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    epoch: 3000
+  - name: model_5.pkl
+    layers:
+      - neurons: 32
+        activation: relu
+      - neurons: 20
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    epoch: 2000

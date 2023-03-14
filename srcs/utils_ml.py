@@ -7,7 +7,7 @@ def data_spliter(x: np.ndarray, y: np.ndarray, proportion: float=0.8):
     split data into a train set and a test set, respecting to the given proportion
     return (x_train, x_test, y_train, y_test)
     """
-    np.random.seed(42)
+    np.random.seed(1)
     if (not isinstance(x, np.ndarray) or not isinstance(x, np.ndarray) or not isinstance(proportion, float)):
         print("spliter invalid type")
         return None
@@ -82,19 +82,30 @@ def add_polynomial_features(x, power):
         print(inst)
         return None
 
+# def normalize(x):
+#     """
+#     normalize matrix with minmax method
+#     """
+#     if not isinstance(x, np.ndarray):
+#         print("normalize Invalid type.")
+#         return None
+#     result = []
+#     for row in x.T:
+#         min_r = min(row)
+#         max_r = max(row)
+#         result.append([(el - min_r) / (max_r - min_r) for el in row])
+#     return np.array(result).T
+
 def normalize(x):
     """
-    normalize matrix with minmax method
+    normalize matrix with method standard
     """
     if not isinstance(x, np.ndarray):
         print("normalize Invalid type.")
         return None
-    result = []
-    for row in x.T:
-        min_r = min(row)
-        max_r = max(row)
-        result.append([(el - min_r) / (max_r - min_r) for el in row])
-    return np.array(result).T
+    mean = np.mean(x, axis=0)
+    std = np.std(x, axis=0)
+    return (x - mean) / std
 
 def intercept_(x):
     """
