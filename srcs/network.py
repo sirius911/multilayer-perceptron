@@ -1,3 +1,5 @@
+import datetime
+import os
 import numpy as np
 from tqdm import tqdm
 from .common import colors
@@ -7,6 +9,9 @@ class Network:
         self.network = [] ## layers
         self.architecture = [] ## mapping input neurons --> output neurons
         self.file = "Not Saved"
+        self.epochs = 100
+        self.loss = []
+        self.accuracy = []
 
     def add(self, layer):
         """
@@ -87,8 +92,10 @@ class Network:
         """
         Train the model
         """
-        self.loss = []
-        self.accuracy = []
+        if epochs > 10:
+            pas = epochs / 10
+        else:
+            pas = 1
         loop = range(epochs) if verbose else tqdm(range(epochs), leave=False, colour='green')
 
         for i in loop:
@@ -99,7 +106,7 @@ class Network:
                 self.loss.append(loss)
                 self._backprop(predicted=yhat, actual=y_train)
                 self._update()
-                if verbose and i%10 == 0:
+                if verbose and i%pas == 0:
                     print(f"epoch {i}/{epochs} - loss:{loss:} accuracy : {accuracy}")
         return loss, accuracy
        
@@ -107,8 +114,21 @@ class Network:
         y_hat = self._forwardprop(X, save=False)
         return y_hat
 
+    def get_cross_entropy(self):
+        """
+            return the last calcul of Entropy
+        """
+        if len(self.loss) > 0:
+            return self.loss[-1]
+        return None
+
     def __str__(self):
+        file_name = f"models/{self.file}"
+        timestamp_modif = os.path.getmtime(file_name)
+        date_modif = datetime.datetime.fromtimestamp(timestamp_modif)   
         res = colors.yellow + str(self.file) + colors.reset + " with "
         for layer in self.network:
             res = res + layer.__str__() + "\t"
+        res = res + "\n\tlast training : " + colors.yellow + date_modif.strftime("%Y-%m-%d %H:%M:%S") + colors.reset
+        res = res + "\n\tCross-Entropy : " + colors.blue + str(self.get_cross_entropy()) + colors.reset
         return res

@@ -1,0 +1,36 @@
+# Parameters of the neural networks
+
+networks:
+  - name: model.pkl
+    layers:
+      - neurons: 75
+        activation: relu
+      - neurons: 35
+        activation: relu
+      - neurons: 15
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    iter: 2000
+  - name: model_1.pkl
+    layers:
+      - neurons: 60
+        activation: relu
+      - neurons: 30
+        activation: relu
+      - neurons: 15
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    iter: 2000
+  - name: model_2.pkl
+    layers:
+      - neurons: 120
+        activation: relu
+      - neurons: 30
+        activation: relu
+      - neurons: 15
+        activation: relu
+      - neurons: 2
+        activation: softmax
+    iter: 3000

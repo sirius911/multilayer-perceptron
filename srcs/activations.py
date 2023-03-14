@@ -2,23 +2,17 @@ import numpy as np
 
 
 # activation function and its derivative
-def tanh(x):
-    return np.tanh(x);
+def tanh(inputs):
+    return np.tanh(inputs)
 
-def tanh_prime(x):
-    return 1-np.tanh(x)**2;
+def tanh_prime(inputs, Z):
+    return 1-np.tanh(inputs)**2
 
-def sigmoid(x):
-    return 1/(1 + np.exp(-x))
+def sigmoid(inputs):
+    return 1/(1 + np.exp(-inputs))
 
-def sigmoid_prime(x):
-    return sigmoid(x) * (1 - sigmoid(x))
-    
-def tanh(x):
-    return np.tanh(x)
-
-def tanh_prime(x):
-    return 1 - np.tanh(x)**2
+def sigmoid_prime(inputs, Z):
+    return sigmoid(inputs) * (1 - sigmoid(inputs))
 
 def relu(inputs):
     """
