@@ -56,7 +56,7 @@ def print_succes(out, y_test, model):
     for o,t in zip(out, y_test):
         if np.argmax(o) == t:
             good += 1
-    print(f"Succes = {good / len(y_test) * 100:.2f}%\t err = {100 - (good / len(y_test) * 100):.2f}%")
+    print(f"Succes = {colors.green}{good / len(y_test) * 100:.2f}%{colors.reset}\t err = {colors.red}{100 - (good / len(y_test) * 100):.2f}%{colors.reset}")
     f1_score = f1_score_(y_test, category_to_bool(out))
     print(f"f1 score = {colors.green}{f1_score:.4f}{colors.reset}")
     confusion = confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=True)
@@ -70,18 +70,22 @@ def loop_multi_training(data, split, verbose=False, graphics=False):
     """
     Training all the model in models/neural_network_params.yml
     """
-    x_train, y_train, _, _ = prepare_data(data, verbose, split)
+    x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
     tab_models = create_models('models/neural_network_params.yml')
     for model in tab_models:
         print(f"\t model : {model}")
         model._compile(x_train)
         loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
+         #calcul f1_score
+        out = model.predict(x_test)
+        f1_score = f1_score_(y_test, category_to_bool(out))
+        model.f1_score = f1_score
         file_name = f"models/{model.file}"
         print(f"save model in {colors.blue}{file_name}{colors.reset} ...", end="")
         with open(file_name, "wb") as f:
             pickle.dump(model, f)
         print(f"{colors.green}OK{colors.reset}")
-        print(f"Epochs = {colors.blue}{model.epochs}{colors.reset}, Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}")
+        print(f"Epochs = {colors.blue}{model.epochs}{colors.reset}, Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}, F1 score = {colors.blue}{f1_score}{colors.reset}")
         accuracy = model.accuracy
         loss = model.loss
 
@@ -111,7 +115,10 @@ def loop_train(data, split, verbose, model_name, graphics=False):
     model._compile(x_train)
 
     loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
-
+    #calcul f1_score
+    out = model.predict(x_test)
+    f1_score = f1_score_(y_test, category_to_bool(out))
+    model.f1_score = f1_score
     # sauvegarde 
     file_name = f"models/{model.file}"
     
@@ -119,7 +126,7 @@ def loop_train(data, split, verbose, model_name, graphics=False):
     with open(file_name, "wb") as f:
         pickle.dump(model, f)
         print(f"{colors.green}OK{colors.reset}")
-    print(f"Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}")
+    print(f"Epochs = {colors.blue}{model.epochs}{colors.reset}, Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}, F1 score = {colors.blue}{f1_score}{colors.reset}")
     accuracy = model.accuracy
     loss = model.loss
     if graphics:
@@ -138,7 +145,6 @@ def loop_train(data, split, verbose, model_name, graphics=False):
         plt.show()
     if verbose:
         print(f"Prediction on datatest ({len(x_test)} lines)")
-        out = model.predict(x_test)
         print_succes(out, y_test, model)
 
 def predict(data, file_model, verbose, split):
@@ -158,20 +164,19 @@ def best(verbose=False):
     return the best Model
     """
     tab_models = load_models('models/neural_network_params.yml')
-    best_accuracy = 0
-    best_model_accuracy = None
+    best_f1 = 0
+    best_model_f1 = None
     for model in tab_models:
         if verbose:
             print(model)
-        cross = model.get_cross_entropy()
-        accuracy = model.get_accuracy()
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            best_model_accuracy = model
-    if best_model_accuracy is not None:
+        f1 = model.get_accuracy()
+        if f1 > best_f1:
+            best_f1 = f1
+            best_model_f1 = model
+    if best_model_f1 is not None:
         if verbose:
-            print(f"Best Model is {colors.green}{best_model_accuracy.file}{colors.reset} with Accuracy = {colors.blue}{best_model_accuracy.get_accuracy()}{colors.reset}")
-        return f"models/{best_model_accuracy.file}"
+            print(f"Best Model is {colors.green}{best_model_f1.file}{colors.reset} with f1 score = {colors.blue}{best_model_f1.f1_score}{colors.reset}")
+        return f"models/{best_model_f1.file}"
     else:
         if verbose:
             print(f"Models {colors.red}Not Found{colors.reset}")

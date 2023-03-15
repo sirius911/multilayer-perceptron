@@ -139,6 +139,11 @@ def fit_transform(targets:np.ndarray, labels:list):
         res[idx] = (target[0] == labels[0])
     return res
 
+def not_zero(x):
+    eps = 1e-15
+    x[x <= 0] = eps
+    return x
+
 def prepare_data(data, verbose, split=0.8):
     """
         Prepare the data :

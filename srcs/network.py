@@ -12,6 +12,7 @@ class Network:
         self.epochs = 100
         self.loss = []
         self.accuracy = []
+        self.f1_score = 0
 
     def add(self, layer):
         """
@@ -142,4 +143,5 @@ class Network:
             res = res + layer.__str__() + "\t"
         res = res + "\n\tlast training : " + colors.yellow + date_modif + colors.reset
         res = res + "\n\tCross-Entropy : " + colors.blue + str(self.get_cross_entropy()) + colors.reset
+        res = res + "\n\tF1 score : " + colors.blue + str(self.f1_score) + colors.reset
         return res
