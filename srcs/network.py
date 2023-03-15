@@ -20,11 +20,11 @@ class Network:
         """
         self.network.append(layer)
             
-    def _compile(self, data):
+    def _compile(self, input):
         """
         Initialize model architecture
         """
-        input_shape = data.shape[1]
+        input_shape = input
         for idx, layer in enumerate(self.network):
             self.architecture.append({'input_dim':input_shape, 
                                     'output_dim':self.network[idx].neurons,
@@ -97,7 +97,7 @@ class Network:
             pas = epochs / 10
         else:
             pas = 1
-        loop = range(epochs) if verbose else tqdm(range(epochs), leave=False, colour='green')
+        loop = range(epochs) if verbose else tqdm(range(epochs), leave=False, colour='green', position=1)
 
         for i in loop:
                 yhat = self._forwardprop(X_train, save=True)

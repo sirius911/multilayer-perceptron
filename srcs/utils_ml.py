@@ -151,15 +151,21 @@ def prepare_data(data, verbose, split=0.8):
             - Normalize
             - put 'M' & 'B' on 1|0
     """
-    target = np.array(data[1].values).reshape(-1,1)
+    # Avant splitter : (569, 1)
+    # après splitter : (455, 1)
+    # après fit_transform : (455,)
+    target = np.array(data[1].values)
+    target = fit_transform(target, ['M', 'B']).reshape(-1, 1)
+
     Xs = np.array(data[data.columns[2:]].values)
     Xs=normalize(Xs)
     #split data
     x_train, y_train, x_test, y_test = data_spliter(Xs, target, split)
 
-    y_train = fit_transform(y_train, ['M', 'B'])
-    y_test = fit_transform(y_test, ['M', 'B'])
-    
+    # y_train = fit_transform(y_train, ['M', 'B'])
+    # y_test = fit_transform(y_test, ['M', 'B'])
+    y_train = y_train.flatten().astype(int)
+    y_test = y_test.flatten().astype(int)
     if verbose:
         nb_input = x_train.shape[1]
         nb_train = x_train.shape[0]
@@ -170,4 +176,12 @@ def prepare_data(data, verbose, split=0.8):
         print(f"\tNb data for training ({colors.yellow}{split*100}%{colors.reset}) : {colors.blue}{nb_train}{colors.reset}")
         print(f"\tNb data for test ({colors.yellow}{100-(split*100)}%{colors.reset}) : {colors.blue}{nb_test}{colors.reset}")
         print("*******************")
+    print(x_train.shape,y_train.shape,x_test.shape, y_test.shape)
     return x_train, y_train, x_test, y_test
+
+def prepare_cross_data(data, k=10):
+    target = np.array(data[1].values)
+    target = fit_transform(target, ['M', 'B']).reshape(-1,1)
+    Xs = np.array(data[data.columns[2:]].values)
+    Xs=normalize(Xs)
+    return Xs, target

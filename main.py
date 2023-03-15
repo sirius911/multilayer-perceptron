@@ -1,14 +1,15 @@
 import getopt
-import os
+import copy
 import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from srcs.utils_ml import prepare_data, category_to_bool
+from srcs.utils_ml import prepare_data, category_to_bool, prepare_cross_data, cross_validation
 from srcs.metrics import perf_measure, f1_score_
 from srcs.confusion_matrix import confusion_matrix_
 from srcs.common import colors, load_data
 from srcs.yml_utils import create_models, get_model, load_models
+from tqdm import tqdm
 
 import pickle
 
@@ -23,6 +24,7 @@ def usage(string = None, extend=False):
     print("\t-o | --model= model's name : name of the model to load in training mode (default models/model_xx.pkl)")
     print("\t\t or a neural networks params.yml file in training mode")
     print("\t-s | --split= xx.yy : split ratio between training and test data: (--split=0.7 means 70% for training and 30% for test) (default 0.8)")
+    print("\t-k | --K=xx : Split the dataset in xx parts for K-folds Validation (Default = 10)")
     print("\t-v | --verbose : mode Verbose to print for each epochs the loss and accuracy")
     print("\t-g | --graphics : drawing graphics in training modes (default: False)")
     print("\t-h | --help : help page.")
@@ -66,86 +68,84 @@ def print_succes(out, y_test, model):
     print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
     print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
 
-def loop_multi_training(data, split, verbose=False, graphics=False):
-    """
-    Training all the model in models/neural_network_params.yml
-    """
-    x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
-    tab_models = create_models('models/neural_network_params.yml')
-    for model in tab_models:
-        print(f"\t model : {model}")
-        model._compile(x_train)
-        loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
-         #calcul f1_score
-        out = model.predict(x_test)
-        f1_score = f1_score_(y_test, category_to_bool(out))
-        model.f1_score = f1_score
-        file_name = f"models/{model.file}"
+
+def graph(name_model, loss_list, accuracy_list):
+    fig = plt.figure()
+    ax1 = fig.add_subplot()
+    ax2 = ax1.twinx()
+    lns1 = ax1.plot(np.arange(len(loss_list)), loss_list, label='Cross-Entropy', color='r')
+    lns2 = ax2.plot(np.arange(len(accuracy_list)), accuracy_list, label='Accuracy', color='b')
+    lns = lns1 + lns2
+    labs = [l.get_label() for l in lns]
+    ax1.legend(lns, labs, loc=0)
+    ax1.set_xlabel("epoch")
+    ax1.set_ylabel("Cross-Entropy")
+    ax2.set_ylabel("Accuracy")
+    plt.title(name_model)
+
+
+def save_model(model, verbose=False):
+    # sauvegarde 
+    file_name = f"models/{model.file}"
+    if verbose:
         print(f"save model in {colors.blue}{file_name}{colors.reset} ...", end="")
-        with open(file_name, "wb") as f:
-            pickle.dump(model, f)
-        print(f"{colors.green}OK{colors.reset}")
-        print(f"Epochs = {colors.blue}{model.epochs}{colors.reset}, Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}, F1 score = {colors.blue}{f1_score}{colors.reset}")
-        accuracy = model.accuracy
-        loss = model.loss
-
-        if graphics:
-            fig = plt.figure()
-            ax1 = fig.add_subplot()
-            ax2 = ax1.twinx()
-            lns1 = ax1.plot(np.arange(len(loss)), loss, label='Cross-Entropy', color='r')
-            lns2 = ax2.plot(np.arange(len(accuracy)), accuracy, label='Accuracy', color='b')
-            lns = lns1 + lns2
-            labs = [l.get_label() for l in lns]
-            ax1.legend(lns, labs, loc=0)
-            ax1.set_xlabel("epoch")
-            ax1.set_ylabel("Cross-Entropy")
-            ax2.set_ylabel("Accuracy")
-            plt.title(file_name)
-        print("-----------------------------------------------------------")
-    plt.show()
-
-def loop_train(data, split, verbose, model_name, graphics=False):
-    """
-        train the model_name only
-    """
-    x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
-    model = get_model('models/neural_network_params.yml', model_name=model_name)
-    print(f"\t model : {model}")
-    model._compile(x_train)
-
+    with open(file_name, "wb") as f:
+        pickle.dump(model, f)
+        if verbose:
+            print(f"{colors.green}OK{colors.reset}")
+        
+def train(model, x_train, y_train, x_test, y_test, verbose, save):
+    model._compile(input = x_train.shape[1])
     loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
     #calcul f1_score
     out = model.predict(x_test)
     f1_score = f1_score_(y_test, category_to_bool(out))
     model.f1_score = f1_score
-    # sauvegarde 
-    file_name = f"models/{model.file}"
-    
-    print(f"save model in {colors.blue}{file_name}{colors.reset} ...", end="")
-    with open(file_name, "wb") as f:
-        pickle.dump(model, f)
-        print(f"{colors.green}OK{colors.reset}")
-    print(f"Epochs = {colors.blue}{model.epochs}{colors.reset}, Cross-Entropy = {colors.blue}{loss}{colors.reset}, Accuracy = {colors.blue}{accuracy}{colors.reset}, F1 score = {colors.blue}{f1_score}{colors.reset}")
-    accuracy = model.accuracy
-    loss = model.loss
-    if graphics:
-        fig = plt.figure()
-        ax1 = fig.add_subplot()
-        ax2 = ax1.twinx()
-        lns1 = ax1.plot(np.arange(len(loss)), loss, label='Cross-Entropy', color='r')
-        lns2 = ax2.plot(np.arange(len(accuracy)), accuracy, label='Accuracy', color='b')
-        lns = lns1 + lns2
-        labs = [l.get_label() for l in lns]
-        ax1.legend(lns, labs, loc=0)
-        ax1.set_xlabel("epoch")
-        ax1.set_ylabel("Cross-Entropy")
-        ax2.set_ylabel("Accuracy")
-        plt.title(file_name)
-        plt.show()
     if verbose:
         print(f"Prediction on datatest ({len(x_test)} lines)")
         print_succes(out, y_test, model)
+    return f1_score
+
+
+def loop_multi_training(data, K, verbose=False, graphics=False):
+    """
+    Training all the model in models/neural_network_params.yml
+    """
+    # x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
+    tab_models = create_models('models/neural_network_params.yml')
+    for model in tab_models:
+        loop_train_cross_data(data=data, K=K, model_empty=model, verbose=verbose, graphics=graphics)
+        print("-----------------------------------------------------------")
+    if graphics:
+        plt.show()
+
+def loop_train_cross_data(data, K, model_empty, verbose=False, graphics=False):
+    """
+        train the model_name only
+    """
+
+    X, Y = prepare_cross_data(data, K)
+    # model_empty = get_model('models/neural_network_params.yml', model_name=model_name)
+    model=None
+    f1_score_sum = 0
+    best_model = None
+    best_score = 0
+    for _,k_folds in zip(tqdm(range(K), desc=f"{model_empty.file} - K_folds", colour='blue'), cross_validation(X, Y, K)):
+        model = copy.deepcopy(model_empty)
+        x_train, y_train, x_test, y_test = k_folds
+        y_train = y_train.flatten().astype(int)
+        y_test = y_test.flatten().astype(int)
+        f1_score = train(model=model, x_train=x_train, y_train=y_train,x_test=x_test, y_test=y_test, verbose=verbose, save=False)
+        f1_score_sum += f1_score
+        if f1_score > best_score:
+            best_model = model
+            best_score = f1_score
+    mean_f1_score = f1_score_sum / K
+    print(f"F1 score mean = {mean_f1_score}")
+    best_model.f1_score = mean_f1_score
+    save_model(best_model, verbose=True)
+    if graphics:
+        graph(name_model=best_model.file, loss_list=best_model.loss, accuracy_list=best_model.accuracy)
 
 def predict(data, file_model, verbose, split):
     """
@@ -184,7 +184,7 @@ def best(verbose=False):
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "f:m:o:s:vhtpgb", ["file=", "predict", "train", "model=", "help", "split=", "verbose", "graphics", "best"])
+        opts, args = getopt.getopt(argv, "f:m:o:s:k:vhtpgb", ["file=", "predict", "train", "model=", "help", "split=", "verbose", "graphics", "best","K="])
     except getopt.GetoptError as inst:
         usage(inst)
 
@@ -195,6 +195,7 @@ def main(argv):
         model = None
         graphics = False
         split = 0.8
+        K = 10
         for opt, arg in opts:
             if opt in ["-f", "--file"]:
                 data = load_data(arg, header=None)
@@ -215,6 +216,10 @@ def main(argv):
                 graphics = True
             elif opt in ["-s", "--split"]:
                 split = float(arg)
+                if split < 0 or split >=1:
+                    usage("The option --split must be a float >= 0 and < 1")
+            elif opt in ["-k", "--K"]:
+                K = int(arg)
             elif opt in ["-b", "--best"]:
                 best(True)
                 return
@@ -223,9 +228,13 @@ def main(argv):
         print(f"********** {colors.green}{mode.upper()}{colors.reset} **********")
         if mode == "train":
             if model is not None:
-                loop_train(data=data, split=split, verbose=verbose, model_name=model, graphics=graphics)
+                model = get_model('models/neural_network_params.yml', model_name=model)
+                if mode is not None:
+                    loop_train_cross_data(data=data, K=K, model_empty=model, verbose=verbose, graphics=graphics)
+                    if graphics:
+                        plt.show()
             else:
-                loop_multi_training(data=data, split=split, verbose=verbose, graphics=graphics)
+                loop_multi_training(data=data, K=K, verbose=verbose, graphics=graphics)
         else: # Predict mode
             if model is None:
                 model = best(verbose=verbose)

@@ -9,7 +9,7 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 1000  
+    epoch: 200  
   - name: model1.pkl
     layers:
       - neurons: 75
@@ -20,7 +20,7 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 1000
+    epoch: 200
   - name: model2.pkl
     layers:
       - neurons: 60
@@ -31,8 +31,8 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 1000
-  - name: model_3.pkl
+    epoch: 200
+  - name: model3.pkl
     layers:
       - neurons: 120
         activation: relu
@@ -44,8 +44,8 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 500
-  - name: model_4.pkl
+    epoch: 200
+  - name: model4.pkl
     layers:
       - neurons: 30
         activation: relu
@@ -55,4 +55,4 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 2000
+    epoch: 200
