@@ -44,6 +44,7 @@ def cross_validation(x, y, K):
     """
     split data into n parts
     """
+    np.random.seed(1)
     if (not isinstance(x, np.ndarray) or not isinstance(x, np.ndarray)):
         print("spliter invalid type")
         return None
@@ -151,9 +152,6 @@ def prepare_data(data, verbose, split=0.8):
             - Normalize
             - put 'M' & 'B' on 1|0
     """
-    # Avant splitter : (569, 1)
-    # après splitter : (455, 1)
-    # après fit_transform : (455,)
     target = np.array(data[1].values)
     target = fit_transform(target, ['M', 'B']).reshape(-1, 1)
 
@@ -161,9 +159,6 @@ def prepare_data(data, verbose, split=0.8):
     Xs=normalize(Xs)
     #split data
     x_train, y_train, x_test, y_test = data_spliter(Xs, target, split)
-
-    # y_train = fit_transform(y_train, ['M', 'B'])
-    # y_test = fit_transform(y_test, ['M', 'B'])
     y_train = y_train.flatten().astype(int)
     y_test = y_test.flatten().astype(int)
     if verbose:
