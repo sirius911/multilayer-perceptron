@@ -13,7 +13,7 @@ def usage(string = None):
     print("\t-f | --file=  : 'dataset.csv'")
     print("\t-t | --type=  : type of analyse (describe | pairplot) default: describe")
     print("\t-b | --begin= : first column of analysis (>1)")
-    print("\t-b | --end=   : last column of analysis")
+    print("\t-e | --end=   : last column of analysis")
     exit(1)
 
 def main(argv):
