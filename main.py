@@ -1,14 +1,13 @@
 import getopt
 import copy
 import sys
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from srcs.utils_ml import prepare_data, category_to_bool, prepare_cross_data, cross_validation
 from srcs.metrics import perf_measure, f1_score_
 from srcs.confusion_matrix import confusion_matrix_
 from srcs.common import colors, load_data
 from srcs.yml_utils import create_models, get_model, load_models
+from srcs.graph import graph, draw_matrix_confusion
 from tqdm import tqdm
 
 import pickle
@@ -49,7 +48,7 @@ def usage(string = None, extend=False):
         print("\nwith Activations : relu, softmax, sigmoid, tanh")
     exit(1)
 
-def print_succes(out, y_test, model):
+def print_succes(out, y_test, model, graphics=None):
     """
         print the performances of the model on the test data
     """
@@ -58,31 +57,16 @@ def print_succes(out, y_test, model):
     for o,t in zip(out, y_test):
         if np.argmax(o) == t:
             good += 1
-    print(f"Succes = {colors.green}{good / len(y_test) * 100:.2f}%{colors.reset}\t err = {colors.red}{100 - (good / len(y_test) * 100):.2f}%{colors.reset}")
+    error = 100 - (good / len(y_test) * 100)
+    print(f"Succes = {colors.green}{good / len(y_test) * 100:.2f}%{colors.reset}\t err = {colors.red}{error:.2f}%{colors.reset}")
     f1_score = f1_score_(y_test, category_to_bool(out))
     print(f"f1 score = {colors.green}{f1_score:.4f}{colors.reset}")
-    confusion = confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=True)
-    print(confusion)
     TP, FP, TN, FN = perf_measure(y=y_test, y_hat=category_to_bool(out))
     print(f"{TN + FN} {colors.green}begnin{colors.reset} cells with {TN} Thrue and {FN} False")
     print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
     print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
-
-
-def graph(name_model, loss_list, accuracy_list):
-    fig = plt.figure()
-    ax1 = fig.add_subplot()
-    ax2 = ax1.twinx()
-    lns1 = ax1.plot(np.arange(len(loss_list)), loss_list, label='Cross-Entropy', color='r')
-    lns2 = ax2.plot(np.arange(len(accuracy_list)), accuracy_list, label='Accuracy', color='b')
-    lns = lns1 + lns2
-    labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs, loc=0)
-    ax1.set_xlabel("epoch")
-    ax1.set_ylabel("Cross-Entropy")
-    ax2.set_ylabel("Accuracy")
-    plt.title(name_model)
-
+    title = f"{model.file} - f1 = {f1_score:.4f} - error = {error:.2f}%"
+    draw_matrix_confusion(confusion_matrix=confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=False), title=title)
 
 def save_model(model, verbose=False):
     # sauvegarde 
@@ -96,7 +80,7 @@ def save_model(model, verbose=False):
         
 def train(model, x_train, y_train, x_test, y_test, verbose, save):
     model._compile(input = x_train.shape[1])
-    loss, accuracy = model.train(x_train, y_train, model.epochs, verbose)
+    model.train(x_train, y_train, model.epochs, verbose)
     #calcul f1_score
     out = model.predict(x_test)
     f1_score = f1_score_(y_test, category_to_bool(out))
@@ -107,7 +91,7 @@ def train(model, x_train, y_train, x_test, y_test, verbose, save):
     return f1_score
 
 
-def loop_multi_training(data, K, verbose=False, graphics=False):
+def loop_multi_training(data, K, verbose=False, graphics=None):
     """
     Training all the model in models/neural_network_params.yml
     """
@@ -116,10 +100,8 @@ def loop_multi_training(data, K, verbose=False, graphics=False):
     for model in tab_models:
         loop_train_cross_data(data=data, K=K, model_empty=model, verbose=verbose, graphics=graphics)
         print("-----------------------------------------------------------")
-    if graphics:
-        plt.show()
 
-def loop_train_cross_data(data, K, model_empty, verbose=False, graphics=False):
+def loop_train_cross_data(data, K, model_empty, verbose=False, graphics=None):
     """
         train the model_name only
     """
@@ -144,10 +126,10 @@ def loop_train_cross_data(data, K, model_empty, verbose=False, graphics=False):
     print(f"F1 score mean = {mean_f1_score}")
     best_model.f1_score = mean_f1_score
     save_model(best_model, verbose=True)
-    if graphics:
-        graph(name_model=best_model.file, loss_list=best_model.loss, accuracy_list=best_model.accuracy)
+    if graphics is not None:
+        graphics.add_plot(x1=best_model.loss, label_x1=best_model.file, x2=best_model.accuracy, label_x2=best_model.file)
 
-def predict(data, file_model, verbose, split):
+def predict(data, file_model, verbose, split, graphics):
     """
     make prediction with the file_model
     """
@@ -157,9 +139,9 @@ def predict(data, file_model, verbose, split):
         model = pickle.load(f)
     print(f"Prediction on datatest ({len(x_test)} lines)")  
     out = model.predict(x_test)
-    print_succes(out, y_test, model)
+    print_succes(out, y_test, model, graphics)
 
-def best(verbose=False):
+def best(verbose=False, graphics=None):
     """
     return the best Model
     """
@@ -173,6 +155,8 @@ def best(verbose=False):
         if f1 > best_f1:
             best_f1 = f1
             best_model_f1 = model
+    if graphics is not None and best_model_f1 is not None:
+        graphics.add_plot(x1=best_model_f1.loss, label_x1=best_model_f1.file, x2=best_model_f1.accuracy, label_x2=best_model_f1.file)
     if best_model_f1 is not None:
         if verbose:
             print(f"Best Model is {colors.green}{best_model_f1.file}{colors.reset} with f1 score = {colors.blue}{best_model_f1.f1_score}{colors.reset}")
@@ -189,11 +173,11 @@ def main(argv):
         usage(inst)
 
     try:
+        graphics = None
         mode = None
         data = None
         verbose = False
         model = None
-        graphics = False
         split = 0.8
         K = 10
         for opt, arg in opts:
@@ -206,6 +190,8 @@ def main(argv):
                 mode = "train"
             elif opt in ["-p", "--predict"]:
                 mode = "predict"
+            elif opt in ["-b", "--best"]:
+                mode = "find best"
             elif opt in ["-v", "--verbose"]:
                 verbose = True
             elif opt in ["-o", "--model"]:
@@ -213,17 +199,14 @@ def main(argv):
             elif opt in ["-h", "--help"]:
                 usage(extend=True)
             elif opt in ["-g", "--graphics"]:
-                graphics = True
+                graphics = graph(mode)
             elif opt in ["-s", "--split"]:
                 split = float(arg)
                 if split < 0 or split >=1:
                     usage("The option --split must be a float >= 0 and < 1")
             elif opt in ["-k", "--K"]:
                 K = int(arg)
-            elif opt in ["-b", "--best"]:
-                best(True)
-                return
-        if mode not in ["train", "predict",]:
+        if mode not in ["train", "predict", "find best"]:
             usage("Bad Mode")
         print(f"********** {colors.green}{mode.upper()}{colors.reset} **********")
         if mode == "train":
@@ -231,19 +214,21 @@ def main(argv):
                 model = get_model('models/neural_network_params.yml', model_name=model)
                 if mode is not None:
                     loop_train_cross_data(data=data, K=K, model_empty=model, verbose=verbose, graphics=graphics)
-                    if graphics:
-                        plt.show()
             else:
                 loop_multi_training(data=data, K=K, verbose=verbose, graphics=graphics)
+        elif mode == "find best":
+            best(verbose=verbose, graphics=graphics)
         else: # Predict mode
             if model is None:
                 model = best(verbose=verbose)
                 if model is None:
                     usage("no model has been trained")
-            predict(data=data,file_model=model, verbose=verbose, split=split)
+            predict(data=data,file_model=model, verbose=verbose, split=split, graphics=graphics)
+        if graphics is not None:
+            graphics.show()
         
     except Exception as inst:
-        usage(inst)
+        error(inst)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
