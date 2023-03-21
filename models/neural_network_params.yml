@@ -31,7 +31,7 @@ networks:
         activation: relu
       - neurons: 2
         activation: softmax
-    epoch: 400
+    epoch: 200
   - name: model3.pkl
     layers:
       - neurons: 120

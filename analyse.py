@@ -12,33 +12,38 @@ def usage(string = None):
     print("usage: analyse --file=DATA --type=[describe | pairplot] --begin=X --end=X")
     print("\t-f | --file=  : 'dataset.csv'")
     print("\t-t | --type=  : type of analyse (describe | pairplot) default: describe")
-    print("\t-b | --begin= : first line of analysis (>1)")
-    print("\t-b | --end=   : last line of analysis")
+    print("\t-b | --begin= : first column of analysis (>1)")
+    print("\t-b | --end=   : last column of analysis")
     exit(1)
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "f:t:b:e:", ["file=", "type=","begin=", "end=", ])
+        opts, args = getopt.getopt(argv, "f:t:b:e:h", ["file=", "type=","begin=", "end=", "help"])
     except getopt.GetoptError as inst:
         usage(inst)
     try:
         data = None
         type = "describe"
+        begin, end = None, None
         for opt, arg in opts:
-            if opt in ["-f", "--file"]:
+            if opt in ["-h", "--help"]:
+                usage()
+            elif opt in ["-f", "--file"]:
                 data = load_data(arg, header=None, names=header)
-            if opt in ["-t", "--type"]:
+            elif opt in ["-t", "--type"]:
                 type = arg
                 if type not in type_analyse:
                     usage()
-        if data is None:
-            usage()
-        begin, end = 0, data.shape[1]
-        for opt, arg in opts:
-            if opt in ["-b", "--begin"]:
+            elif opt in ["-b", "--begin"]:
                 begin = int(arg)
             elif opt in ["-e", "--end"]:
                 end = int(arg)
+        if data is None:
+            usage()
+        if begin is None:
+            begin = 0
+        if end is None:
+            end = data.shape[1]
         if type == "describe": 
             describe(data, begin, end, True)
         else:
