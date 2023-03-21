@@ -46,8 +46,8 @@ def main(argv):
                 begin = 1
             if end == data.shape[1]:
                 end = data.shape[1] - 2
-            if begin > 0 and end <= data.shape[1] - 2:
-                scatterplot(data, begin+1, end)
+            if begin >= 0 and end <= data.shape[1] - 2:
+                scatterplot(data, begin, end)
             else:
                 error(f"Begin must be > 0 and end <= {data.shape[1] - 2}")
     except Exception as inst:

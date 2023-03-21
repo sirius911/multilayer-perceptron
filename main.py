@@ -66,7 +66,8 @@ def print_succes(out, y_test, model, graphics=None):
     print(f"{TP+FP} {colors.red}malignant{colors.reset} cells with {TP} True and {FP} False")
     print(f"False Positive = {colors.red}{FP}{colors.reset}\tFalse Negative = {colors.red}{FN}{colors.reset}")
     title = f"{model.file} - f1 = {f1_score:.4f} - error = {error:.2f}%"
-    draw_matrix_confusion(confusion_matrix=confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=False), title=title)
+    if graphics is not None:
+        draw_matrix_confusion(confusion_matrix=confusion_matrix_(y_true= y_test, y_hat=category_to_bool(out), df_option=False), title=title)
 
 def save_model(model, verbose=False):
     # sauvegarde 
@@ -95,7 +96,6 @@ def loop_multi_training(data, K, verbose=False, graphics=None):
     """
     Training all the model in models/neural_network_params.yml
     """
-    # x_train, y_train, x_test, y_test = prepare_data(data, verbose, split)
     tab_models = create_models('models/neural_network_params.yml')
     for model in tab_models:
         loop_train_cross_data(data=data, K=K, model_empty=model, verbose=verbose, graphics=graphics)
@@ -107,7 +107,6 @@ def loop_train_cross_data(data, K, model_empty, verbose=False, graphics=None):
     """
 
     X, Y = prepare_cross_data(data, K)
-    # model_empty = get_model('models/neural_network_params.yml', model_name=model_name)
     model=None
     f1_score_sum = 0
     best_model = None
@@ -184,7 +183,7 @@ def main(argv):
             if opt in ["-f", "--file"]:
                 data = load_data(arg, header=None)
         if data is None:
-            usage("No data")
+            usage("No data", extend=True)
         for opt, arg in opts:
             if opt in ["-t", "--train"]:
                 mode = "train"
@@ -228,7 +227,7 @@ def main(argv):
             graphics.show()
         
     except Exception as inst:
-        error(inst)
+        usage(inst)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

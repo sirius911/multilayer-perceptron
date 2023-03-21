@@ -171,7 +171,6 @@ def prepare_data(data, verbose, split=0.8):
         print(f"\tNb data for training ({colors.yellow}{split*100}%{colors.reset}) : {colors.blue}{nb_train}{colors.reset}")
         print(f"\tNb data for test ({colors.yellow}{100-(split*100)}%{colors.reset}) : {colors.blue}{nb_test}{colors.reset}")
         print("*******************")
-    print(x_train.shape,y_train.shape,x_test.shape, y_test.shape)
     return x_train, y_train, x_test, y_test
 
 def prepare_cross_data(data, k=10):
